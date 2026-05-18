@@ -1,0 +1,123 @@
+import { create } from "zustand";
+import type { BuilderPageDocument, BuilderSection, BuilderPageVersion } from "@/page-builder/types";
+import { createSection } from "@/page-builder/registry";
+
+function reorder<T>(items: T[], fromIndex: number, toIndex: number) {
+  const next = [...items];
+  const [moved] = next.splice(fromIndex, 1);
+  next.splice(toIndex, 0, moved);
+  return next;
+}
+
+interface PageBuilderState {
+  draft: BuilderPageDocument | null;
+  published: BuilderPageDocument | null;
+  draftVersionId: string | null;
+  publishedVersionId: string | null;
+  selectedSectionId: string | null;
+  activeDragId: string | null;
+  dirty: boolean;
+  previewMode: "desktop" | "tablet" | "mobile";
+  hydrate: (payload: {
+    draft?: BuilderPageVersion | null;
+    published?: BuilderPageVersion | null;
+  }) => void;
+  setSelectedSectionId: (id: string | null) => void;
+  setActiveDragId: (id: string | null) => void;
+  setPreviewMode: (mode: "desktop" | "tablet" | "mobile") => void;
+  addSection: (type: string) => void;
+  removeSection: (id: string) => void;
+  reorderSections: (fromIndex: number, toIndex: number) => void;
+  updateSectionProps: (id: string, patch: Record<string, unknown>) => void;
+  markSaved: (draftVersionId: string) => void;
+  markPublished: (publishedVersionId: string, document: BuilderPageDocument) => void;
+}
+
+export const usePageBuilderStore = create<PageBuilderState>((set) => ({
+  draft: null,
+  published: null,
+  draftVersionId: null,
+  publishedVersionId: null,
+  selectedSectionId: null,
+  activeDragId: null,
+  dirty: false,
+  previewMode: "desktop",
+
+  hydrate: ({ draft, published }) => {
+    const draftDocument = draft?.document || published?.document || null;
+    set({
+      draft: draftDocument,
+      published: published?.document || null,
+      draftVersionId: draft?.id || published?.id || null,
+      publishedVersionId: published?.id || null,
+      selectedSectionId: null,
+      activeDragId: null,
+      dirty: draft?.id !== published?.id,
+    });
+  },
+
+  setSelectedSectionId: (selectedSectionId) => set({ selectedSectionId }),
+  setActiveDragId: (activeDragId) => set({ activeDragId }),
+  setPreviewMode: (previewMode) => set({ previewMode }),
+
+  addSection: (type) => set((state) => {
+    if (!state.draft) return state;
+    const section = createSection(type);
+    return {
+      draft: {
+        ...state.draft,
+        sections: [...state.draft.sections, section],
+      },
+      selectedSectionId: section.id,
+      dirty: true,
+    };
+  }),
+
+  removeSection: (id) => set((state) => {
+    if (!state.draft) return state;
+    return {
+      draft: {
+        ...state.draft,
+        sections: state.draft.sections.filter((section) => section.id !== id),
+      },
+      selectedSectionId: state.selectedSectionId === id ? null : state.selectedSectionId,
+      dirty: true,
+    };
+  }),
+
+  reorderSections: (fromIndex, toIndex) => set((state) => {
+    if (!state.draft || fromIndex === toIndex || fromIndex < 0 || toIndex < 0) return state;
+    return {
+      draft: {
+        ...state.draft,
+        sections: reorder<BuilderSection>(state.draft.sections, fromIndex, toIndex),
+      },
+      dirty: true,
+    };
+  }),
+
+  updateSectionProps: (id, patch) => set((state) => {
+    if (!state.draft) return state;
+    return {
+      draft: {
+        ...state.draft,
+        sections: state.draft.sections.map((section) => (
+          section.id === id
+            ? { ...section, props: { ...section.props, ...patch } }
+            : section
+        )),
+      },
+      dirty: true,
+    };
+  }),
+
+  markSaved: (draftVersionId) => set({ draftVersionId, dirty: false }),
+
+  markPublished: (publishedVersionId, document) => set({
+    publishedVersionId,
+    draftVersionId: publishedVersionId,
+    published: document,
+    draft: document,
+    dirty: false,
+  }),
+}));
