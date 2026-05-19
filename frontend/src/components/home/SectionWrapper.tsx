@@ -1,5 +1,4 @@
 import { ReactNode } from "react";
-import { motion } from "framer-motion";
 
 interface SectionWrapperProps {
   children: ReactNode;
@@ -32,7 +31,6 @@ export default function SectionWrapper({
   return (
     <section className={`py-16 lg:py-24 ${bgWhite ? "bg-white dark:bg-gray-950" : "bg-gray-50 dark:bg-gray-900"} ${className}`}>
       <div className="container mx-auto px-4">
-        
         {(title || subtitle || headerAction) && (
           <div className={headerLayoutClass}>
             <div>
@@ -44,9 +42,7 @@ export default function SectionWrapper({
             )}
           </div>
         )}
-
         {children}
-
       </div>
     </section>
   );

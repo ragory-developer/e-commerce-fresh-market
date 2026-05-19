@@ -8,8 +8,24 @@ import { Phone, Lock, KeyRound, Loader2, Eye, EyeOff, CheckCircle2 } from 'lucid
 
 type Tab = 'password' | 'otp';
 type OtpStep = 'phone' | 'verify';
+type LoginUser = {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  role: 'ADMIN' | 'USER' | 'SUPER_ADMIN';
+  permissions?: string[];
+  isGuest?: boolean;
+  gender?: string;
+  dateOfBirth?: string;
+  [key: string]: unknown;
+};
 
 const inputCls = "w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all font-medium text-sm";
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
 
 export default function LoginTabs() {
   const [tab, setTab] = useState<Tab>('password');
@@ -50,7 +66,7 @@ export default function LoginTabs() {
     return () => clearTimeout(t);
   }, [countdown]);
 
-  const storeAndNavigate = (accessToken: string, refreshToken: string, user: any) => {
+  const storeAndNavigate = (accessToken: string, refreshToken: string, user: LoginUser) => {
     login(accessToken, refreshToken, user);
     const redirectTo = searchParams?.get('redirect') || '/dashboard';
     router.push(redirectTo);
@@ -70,8 +86,8 @@ export default function LoginTabs() {
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.message || 'Invalid phone or password');
       storeAndNavigate(data.data.accessToken, data.data.refreshToken, data.data.user);
-    } catch (err: any) {
-      setPwError(err.message);
+    } catch (err: unknown) {
+      setPwError(getErrorMessage(err, 'Login failed'));
     } finally {
       setPwLoading(false);
     }
@@ -92,8 +108,8 @@ export default function LoginTabs() {
       if (!res.ok || !data.success) throw new Error(data.message || 'Failed to send OTP');
       setCountdown(60);
       setOtpStep('verify');
-    } catch (err: any) {
-      setOtpError(err.message);
+    } catch (err: unknown) {
+      setOtpError(getErrorMessage(err, 'Failed to send OTP'));
     } finally {
       setOtpLoading(false);
     }
@@ -113,8 +129,8 @@ export default function LoginTabs() {
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.message || 'Invalid OTP');
       storeAndNavigate(data.data.accessToken, data.data.refreshToken, data.data.user);
-    } catch (err: any) {
-      setOtpError(err.message);
+    } catch (err: unknown) {
+      setOtpError(getErrorMessage(err, 'Failed to verify OTP'));
     } finally {
       setOtpLoading(false);
     }
@@ -193,8 +209,11 @@ export default function LoginTabs() {
               />
               <button
                 type="button"
+                aria-label={showPass ? 'Hide password' : 'Show password'}
+                aria-pressed={showPass}
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => setShowPass(v => !v)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                className="absolute right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:hover:bg-gray-800 dark:hover:text-gray-300"
               >
                 {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>

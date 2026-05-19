@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { API_URL } from "@/lib/config";
@@ -84,7 +84,6 @@ export default function RegisterPage() {
 
   // Step 2: temp tokens (from verifyOtp)
   const [tempToken, setTempToken] = useState("");
-  const [tempUserId, setTempUserId] = useState("");
 
   // Step 3 data
   const [name, setName] = useState("");
@@ -198,7 +197,6 @@ export default function RegisterPage() {
       }
       // Store temp token to use for address saving later
       setTempToken(data.data.accessToken);
-      setTempUserId(data.data.user.id);
       localStorage.setItem("freshcart_access_token", data.data.accessToken);
       localStorage.setItem("freshcart_refresh_token", data.data.refreshToken);
       localStorage.setItem("token", data.data.accessToken);
@@ -364,7 +362,7 @@ export default function RegisterPage() {
                   />
                 </div>
                 <p className="text-xs text-gray-400 mt-2 pl-1">
-                  We'll send a 6-digit verification code to this number.
+                  We&apos;ll send a 6-digit verification code to this number.
                 </p>
               </div>
               <button
@@ -497,8 +495,11 @@ export default function RegisterPage() {
                   />
                   <button
                     type="button"
+                    aria-label={showPass ? "Hide password" : "Show password"}
+                    aria-pressed={showPass}
+                    onMouseDown={(e) => e.preventDefault()}
                     onClick={() => setShowPass(v => !v)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    className="absolute right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:hover:bg-gray-800 dark:hover:text-gray-300"
                   >
                     {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>

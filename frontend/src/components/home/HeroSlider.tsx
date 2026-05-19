@@ -78,7 +78,7 @@ export default function HeroSlider() {
                 <div className="container mx-auto px-6 lg:px-12">
                   <div className="max-w-xl text-white">
                     <motion.div
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={false}
                       animate={currentSlide === index ? { opacity: 1, y: 0 } : {}}
                       transition={{ duration: 0.5, delay: 0.2 }}
                     >

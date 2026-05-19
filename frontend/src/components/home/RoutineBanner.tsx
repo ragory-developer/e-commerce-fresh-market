@@ -30,7 +30,7 @@ export default function RoutineBanner({
     <section className="py-8 lg:py-14 bg-white dark:bg-gray-950">
       <div className="container mx-auto px-4">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={false}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}

@@ -56,7 +56,7 @@ export default function PromoBadgeGrid({ badges = defaultBadges }: PromoBadgeGri
           {badges.map((badge, idx) => (
             <motion.div
               key={idx}
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: idx * 0.1 }}

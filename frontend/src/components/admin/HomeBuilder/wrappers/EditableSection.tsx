@@ -35,7 +35,7 @@ export default function EditableSection({
     <div 
       ref={ref}
       data-section-id={sectionId}
-      className={`relative group transition-all duration-300 outline-dashed outline-2 outline-offset-[-2px] select-none ${
+      className={`relative group transition-all duration-200 outline-dashed outline-2 outline-offset-[-2px] select-none ${
         isDragging
           ? "opacity-40 outline-emerald-400 bg-emerald-500/10 scale-[0.985] shadow-inner z-50 cursor-default"
           : isActive 
@@ -84,7 +84,7 @@ export default function EditableSection({
     >
       {/* Integrated Premium Floating Top Control Bar */}
       <div 
-        className={`absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full px-2.5 py-1.5 rounded-t-xl text-white text-xs font-bold flex items-center gap-2.5 transition-all duration-200 z-50 shadow-2xl border border-b-0 border-white/10 pointer-events-auto select-none ${
+        className={`absolute top-2 left-1/2 -translate-x-1/2 px-2 py-1.5 rounded-lg text-white text-xs font-bold flex max-w-[calc(100%-1rem)] items-center gap-2 transition-all duration-200 z-50 shadow-2xl border border-white/10 pointer-events-auto select-none ${
           isDragging
             ? "bg-emerald-600 opacity-100 scale-105"
             : isActive 
@@ -95,17 +95,17 @@ export default function EditableSection({
         {/* Reduced Grab Area: Grab indicator with name */}
         <div 
           ref={handleRef}
-          className="flex items-center gap-1.5 cursor-grab active:cursor-grabbing px-2 py-0.5 hover:bg-white/10 rounded transition" 
+          className="flex min-w-0 items-center gap-1.5 cursor-grab active:cursor-grabbing px-2 py-0.5 hover:bg-white/10 rounded transition" 
           title="Click & hold to drag and reorder section"
         >
           <GripVertical size={13} className="shrink-0 text-white/80 animate-pulse" />
-          <span>{isDragging ? `Sorting ${name}` : name}</span>
+          <span className="truncate">{isDragging ? `Sorting ${name}` : name}</span>
         </div>
 
         {/* Divider & Remove Button */}
         {onDelete && (
           <>
-            <div className="h-3 w-[1px] bg-white/20" />
+            <div className="h-3 w-px shrink-0 bg-white/20" />
             <button
               type="button"
               onPointerDown={(e) => e.stopPropagation()}
@@ -129,4 +129,3 @@ export default function EditableSection({
     </div>
   );
 }
-

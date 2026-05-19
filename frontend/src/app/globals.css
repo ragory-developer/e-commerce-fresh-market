@@ -86,3 +86,13 @@ h1, h2, h3, h4, h5, h6 {
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
+
+/* Compact storefront sections only while editing in the admin page builder. */
+.builder-preview-canvas section {
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+
+.builder-preview-canvas section:first-child {
+  margin-top: 0;
+}

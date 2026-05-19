@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { API_URL } from "@/lib/config";
 import { toast } from "sonner";
 import { DragDropProvider, DragOverlay } from "@dnd-kit/react";
@@ -84,6 +84,7 @@ export default function HomeBuilderView({ allProducts = [] }: { allProducts?: un
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
+  const previousSectionIdsRef = useRef<Set<string> | null>(null);
 
   const fetchBuilderPage = useCallback(async () => {
     setLoading(true);
@@ -204,6 +205,48 @@ export default function HomeBuilderView({ allProducts = [] }: { allProducts?: un
 
   const activeDefinition = activeSection ? sectionRegistry[activeSection.type] : null;
   const activeDragSection = draft?.sections.find((section) => section.id === activeDragId) || null;
+  const sectionGroups = useMemo(() => (
+    availableSections.reduce<Record<string, typeof availableSections>>((groups, definition) => {
+      groups[definition.category] = [...(groups[definition.category] || []), definition];
+      return groups;
+    }, {})
+  ), []);
+
+  useEffect(() => {
+    if (!selectedSectionId) return;
+
+    const timer = window.setTimeout(() => {
+      const editor = document.querySelector(`[data-section-editor="${selectedSectionId}"]`);
+      const firstInput = editor?.querySelector<HTMLElement>("[data-builder-input]");
+      firstInput?.focus();
+      firstInput?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 120);
+
+    return () => window.clearTimeout(timer);
+  }, [selectedSectionId]);
+
+  useEffect(() => {
+    const sectionIds = new Set(draft?.sections.map((section) => section.id) || []);
+    const previousSectionIds = previousSectionIdsRef.current;
+    const selectedSectionWasJustAdded = Boolean(
+      selectedSectionId
+        && sectionIds.has(selectedSectionId)
+        && previousSectionIds
+        && !previousSectionIds.has(selectedSectionId),
+    );
+
+    previousSectionIdsRef.current = sectionIds;
+
+    if (!selectedSectionWasJustAdded) return;
+
+    const timer = window.setTimeout(() => {
+      document
+        .querySelector<HTMLElement>(`[data-section-id="${selectedSectionId}"]`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+    }, 80);
+
+    return () => window.clearTimeout(timer);
+  }, [draft?.sections, selectedSectionId]);
 
   const renderSectionContent = (section: BuilderSection) => {
     const definition = sectionRegistry[section.type];
@@ -251,9 +294,9 @@ export default function HomeBuilderView({ allProducts = [] }: { allProducts?: un
   return (
     <DragDropProvider onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="flex h-screen overflow-hidden bg-gray-200">
-        <aside className="relative z-50 flex w-[340px] shrink-0 flex-col border-r border-gray-200 bg-white shadow-xl">
-          <div className="border-b border-gray-200 bg-gray-950 p-4 text-white">
-            <div className="mb-4 flex items-center gap-2 text-lg font-black">
+        <aside className="relative z-50 flex w-[336px] shrink-0 flex-col border-r border-gray-200 bg-white shadow-xl">
+          <div className="border-b border-gray-200 bg-gray-950 px-4 py-3 text-white">
+            <div className="mb-3 flex items-center gap-2 text-lg font-black">
               <LayoutTemplate className="text-emerald-400" />
               Home Builder
             </div>
@@ -262,7 +305,7 @@ export default function HomeBuilderView({ allProducts = [] }: { allProducts?: un
                 type="button"
                 onClick={handleSaveDraft}
                 disabled={saving || !dirty}
-                className={`flex items-center justify-center gap-2 rounded-lg py-2 text-sm font-bold transition ${
+                className={`flex min-h-10 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-bold transition ${
                   dirty && !saving
                     ? "bg-emerald-500 text-white hover:bg-emerald-600"
                     : "bg-gray-800 text-gray-500"
@@ -275,7 +318,7 @@ export default function HomeBuilderView({ allProducts = [] }: { allProducts?: un
                 type="button"
                 onClick={handlePublish}
                 disabled={publishing || !draft}
-                className="flex items-center justify-center gap-2 rounded-lg bg-blue-500 py-2 text-sm font-bold text-white transition hover:bg-blue-600 disabled:opacity-50"
+                className="flex min-h-10 items-center justify-center gap-2 rounded-lg bg-blue-500 px-3 py-2 text-sm font-bold text-white transition hover:bg-blue-600 disabled:opacity-50"
               >
                 {publishing ? <Loader2 size={16} className="animate-spin" /> : <Rocket size={16} />}
                 Publish
@@ -288,23 +331,38 @@ export default function HomeBuilderView({ allProducts = [] }: { allProducts?: un
 
           <div className="flex-1 overflow-y-auto">
             {!activeSection || !activeDefinition ? (
-              <div className="p-5">
+              <div className="p-4">
                 <h3 className="mb-1 text-lg font-black text-gray-900">Component Library</h3>
-                <p className="mb-4 text-sm text-gray-500">Add reusable storefront sections to the homepage.</p>
-                <div className="space-y-2">
-                  {availableSections.map((definition) => (
-                    <button
-                      key={definition.type}
-                      type="button"
-                      onClick={() => addSection(definition.type)}
-                      className="group flex w-full items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-left text-sm font-bold text-gray-700 transition hover:border-emerald-500 hover:bg-emerald-50"
-                    >
-                      <span>
-                        {definition.label}
-                        <span className="mt-0.5 block text-xs font-semibold text-gray-400">{definition.category}</span>
-                      </span>
-                      <Plus className="text-emerald-500 opacity-0 transition group-hover:opacity-100" size={16} />
-                    </button>
+                <p className="mb-5 text-sm leading-5 text-gray-500">Choose a polished storefront block. Newly added sections are selected automatically for editing.</p>
+                <div className="space-y-5">
+                  {Object.entries(sectionGroups).map(([category, definitions]) => (
+                    <div key={category}>
+                      <div className="mb-2 flex items-center justify-between">
+                        <h4 className="text-xs font-black uppercase tracking-wider text-gray-400">{category}</h4>
+                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-black text-gray-400">{definitions.length}</span>
+                      </div>
+                      <div className="space-y-2">
+                        {definitions.map((definition) => (
+                          <button
+                            key={definition.type}
+                            type="button"
+                            onClick={() => addSection(definition.type)}
+                            className="group flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white px-3.5 py-3 text-left transition hover:-translate-y-0.5 hover:border-emerald-500 hover:bg-emerald-50 hover:shadow-lg hover:shadow-emerald-500/10"
+                          >
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500 transition group-hover:bg-emerald-500 group-hover:text-white">
+                              <LayoutTemplate size={17} />
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-sm font-black text-gray-800">{definition.label}</span>
+                              <span className="mt-0.5 block line-clamp-2 text-xs font-medium leading-4 text-gray-500">
+                                {definition.description || "Reusable storefront section"}
+                              </span>
+                            </span>
+                            <Plus className="shrink-0 text-emerald-500 opacity-0 transition group-hover:opacity-100" size={16} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -332,7 +390,7 @@ export default function HomeBuilderView({ allProducts = [] }: { allProducts?: un
                     <Trash2 size={18} />
                   </button>
                 </div>
-                <div className="flex-1 overflow-y-auto p-5">
+                <div className="flex-1 overflow-y-auto p-5" data-section-editor={activeSection.id}>
                   {activeDefinition.Editor ? (
                     <activeDefinition.Editor
                       section={activeSection}
@@ -348,7 +406,7 @@ export default function HomeBuilderView({ allProducts = [] }: { allProducts?: un
         </aside>
 
         <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          <div className="flex h-14 shrink-0 items-center justify-between border-b border-gray-300 bg-white px-4">
+          <div className="flex h-14 shrink-0 items-center justify-between border-b border-gray-300 bg-white px-4 shadow-sm">
             <div className="flex items-center gap-2">
               {[
                 { mode: "desktop" as const, icon: Eye, label: "Desktop" },
@@ -380,15 +438,15 @@ export default function HomeBuilderView({ allProducts = [] }: { allProducts?: un
             </button>
           </div>
 
-          <div className="flex-1 overflow-auto px-4 py-8" onClick={() => setSelectedSectionId(null)}>
+          <div className="flex-1 overflow-auto px-4 py-6 sm:px-6" onClick={() => setSelectedSectionId(null)}>
             {!draft?.sections.length ? (
-              <div className="mx-auto flex min-h-[calc(100vh-9rem)] max-w-xl flex-col items-center justify-center text-center text-gray-500">
-                <LayoutTemplate size={64} className="mb-4 opacity-20" />
-                <h2 className="mb-2 text-2xl font-black">Your canvas is empty</h2>
-                <p>Add components from the library to build the homepage.</p>
+              <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-xl flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white/60 px-6 text-center text-gray-500">
+                <LayoutTemplate size={56} className="mb-4 opacity-20" />
+                <h2 className="mb-2 text-2xl font-black text-gray-700">Your canvas is empty</h2>
+                <p className="text-sm font-medium">Add components from the library to build the homepage.</p>
               </div>
             ) : (
-              <div className={`mx-auto min-h-full bg-white shadow-2xl transition-all ${canvasWidth}`}>
+              <div className={`builder-preview-canvas mx-auto min-h-full overflow-visible bg-white shadow-2xl ring-1 ring-black/5 transition-all ${canvasWidth}`}>
                 {draft.sections.map((section, index) => {
                   const definition = sectionRegistry[section.type];
                   return (

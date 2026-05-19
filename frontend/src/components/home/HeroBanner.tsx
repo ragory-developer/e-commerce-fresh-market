@@ -34,7 +34,7 @@ export default function HeroBanner({
         <div className="flex flex-col md:flex-row items-center min-h-[400px] lg:min-h-[500px] py-8 md:py-0">
           {/* Left Content */}
           <motion.div
-            initial={{ opacity: 0, x: -40 }}
+            initial={false}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7 }}
             className={`md:w-1/2 z-10 flex flex-col ${alignClass}`}
@@ -62,7 +62,7 @@ export default function HeroBanner({
  
           {/* Right Image */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={false}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.7, delay: 0.2 }}
             className="md:w-1/2 relative mt-8 md:mt-0 flex items-center justify-center"
