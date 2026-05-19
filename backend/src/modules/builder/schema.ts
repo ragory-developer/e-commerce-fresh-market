@@ -13,7 +13,36 @@ const heroBannerPropsSchema = z.object({
   ctaHref: urlString.optional(),
   imageSrc: urlString.optional(),
   textAlign: textAlignSchema.optional(),
+  themeVariant: z.enum(['default', 'eid', 'puja']).optional(),
 }).passthrough();
+
+const slideSchema = z.object({
+  title: baseString,
+  subtitle: baseString,
+  description: baseString,
+  cta: z.string().max(120),
+  href: urlString,
+  image: urlString,
+  gradient: z.string().max(250),
+});
+
+const heroSliderPropsSchema = z.object({
+  slides: z.array(slideSchema).optional(),
+}).passthrough();
+
+const campaignBannerPropsSchema = z.object({
+  title: baseString.optional(),
+  subtitle: baseString.optional(),
+  ctaText: z.string().max(120).optional(),
+  ctaHref: urlString.optional(),
+}).passthrough();
+
+const eidSpecialBannerPropsSchema = campaignBannerPropsSchema;
+const pujaSpecialBannerPropsSchema = campaignBannerPropsSchema;
+const ramadanSpecialBannerPropsSchema = campaignBannerPropsSchema;
+const boishakhSpecialBannerPropsSchema = campaignBannerPropsSchema;
+const blackfridaySpecialBannerPropsSchema = campaignBannerPropsSchema;
+const christmasSpecialBannerPropsSchema = campaignBannerPropsSchema;
 
 const specialOffersPropsSchema = z.object({
   title: baseString.optional(),
@@ -38,11 +67,42 @@ const testimonialPropsSchema = z.object({
   title: baseString.optional(),
   subtitle: baseString.optional(),
   textAlign: textAlignSchema.optional(),
+  testimonials: z.array(z.object({
+    name: baseString,
+    avatar: urlString,
+    rating: z.number().min(1).max(5),
+    review: baseString,
+    product: baseString,
+  })).optional(),
+}).passthrough();
+
+const promoBadgeGridPropsSchema = z.object({
+  badges: z.array(z.object({
+    title: baseString,
+    subtitle: baseString,
+    iconName: z.string().max(80),
+    bgColor: z.string().max(120),
+    href: urlString,
+  })).optional(),
+}).passthrough();
+
+const hotDealsSectionPropsSchema = z.object({
+  title: baseString.optional(),
+  subtitle: baseString.optional(),
+  deals: z.array(z.object({
+    name: baseString,
+    originalPrice: z.string().max(80),
+    salePrice: z.string().max(80),
+    discount: z.string().max(80),
+    image: urlString,
+    endsIn: z.string().max(80).optional(),
+  })).optional(),
 }).passthrough();
 
 const consultationPropsSchema = z.object({
   title: baseString.optional(),
   subtitle: baseString.optional(),
+  features: z.array(z.string().max(500)).max(10).optional(),
   ctaText: z.string().max(120).optional(),
   ctaHref: urlString.optional(),
   imageSrc: urlString.optional(),
@@ -57,18 +117,30 @@ const newArrivalsPropsSchema = z.object({
   title: baseString.optional(),
   subtitle: baseString.optional(),
   ctaHref: urlString.optional(),
+  items: z.array(z.object({
+    name: baseString,
+    price: z.string().max(80),
+    image: urlString,
+    badge: z.string().max(80).optional(),
+  })).max(12).optional(),
 }).passthrough();
 
 const sectionSchemas: Record<string, z.ZodTypeAny> = {
   HeroBanner: heroBannerPropsSchema,
   SpecialOffersBanner: specialOffersPropsSchema,
   ProductShowcase: productShowcasePropsSchema,
-  PromoBadgeGrid: z.object({}).passthrough(),
+  PromoBadgeGrid: promoBadgeGridPropsSchema,
   TestimonialSection: testimonialPropsSchema,
-  HotDealsSection: z.object({}).passthrough(),
+  HotDealsSection: hotDealsSectionPropsSchema,
   ConsultationBanner: consultationPropsSchema,
   RoutineBanner: routinePropsSchema,
   NewArrivalsSection: newArrivalsPropsSchema,
+  EidSpecialBanner: eidSpecialBannerPropsSchema,
+  PujaSpecialBanner: pujaSpecialBannerPropsSchema,
+  RamadanSpecialBanner: ramadanSpecialBannerPropsSchema,
+  BoishakhSpecialBanner: boishakhSpecialBannerPropsSchema,
+  BlackFridaySpecialBanner: blackfridaySpecialBannerPropsSchema,
+  ChristmasSpecialBanner: christmasSpecialBannerPropsSchema,
 };
 
 const unsafePattern = /<\s*script|javascript:|on\w+\s*=/i;
@@ -91,11 +163,24 @@ function assertNoUnsafeStrings(value: unknown, path = 'document') {
   }
 }
 
+export const builderSectionStyleSchema = z.object({
+  spacingTop: z.enum(["none", "sm", "md", "lg", "xl"]).optional(),
+  spacingBottom: z.enum(["none", "sm", "md", "lg", "xl"]).optional(),
+  background: z.enum(["white", "gray", "brand", "dark"]).optional(),
+  container: z.enum(["full", "contained", "narrow"]).optional(),
+  customClass: z.string().max(250).optional(),
+  customBgColor: z.string().max(80).optional(),
+  customBgImage: z.string().max(1000).optional(),
+  customTextColor: z.string().max(80).optional(),
+  customPadding: z.string().max(100).optional(),
+  customAlignment: z.enum(["left", "center", "right"]).optional(),
+});
+
 export const builderSectionSchema = z.object({
   id: z.string().min(1).max(120),
   type: z.string().min(1).max(80),
   props: z.record(z.unknown()).default({}),
-  styles: z.record(z.unknown()).optional(),
+  styles: builderSectionStyleSchema.optional(),
   settings: z.object({
     hidden: z.boolean().optional(),
     container: z.enum(['full', 'contained']).optional(),

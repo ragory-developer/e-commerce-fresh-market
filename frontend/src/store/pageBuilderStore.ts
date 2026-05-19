@@ -22,6 +22,7 @@ interface PageBuilderState {
     draft?: BuilderPageVersion | null;
     published?: BuilderPageVersion | null;
   }) => void;
+  applyTemplate: (document: BuilderPageDocument) => void;
   setSelectedSectionId: (id: string | null) => void;
   setActiveDragId: (id: string | null) => void;
   setPreviewMode: (mode: "desktop" | "tablet" | "mobile") => void;
@@ -29,6 +30,7 @@ interface PageBuilderState {
   removeSection: (id: string) => void;
   reorderSections: (fromIndex: number, toIndex: number) => void;
   updateSectionProps: (id: string, patch: Record<string, unknown>) => void;
+  updateSectionStyles: (id: string, patch: Partial<BuilderSection["styles"]>) => void;
   markSaved: (draftVersionId: string) => void;
   markPublished: (publishedVersionId: string, document: BuilderPageDocument) => void;
 }
@@ -52,9 +54,15 @@ export const usePageBuilderStore = create<PageBuilderState>((set) => ({
       publishedVersionId: published?.id || null,
       selectedSectionId: null,
       activeDragId: null,
-      dirty: draft?.id !== published?.id,
+      dirty: draft != null && draft.id !== (published?.id ?? null),
     });
   },
+
+  applyTemplate: (document) => set({
+    draft: document,
+    selectedSectionId: null,
+    dirty: true,
+  }),
 
   setSelectedSectionId: (selectedSectionId) => set({ selectedSectionId }),
   setActiveDragId: (activeDragId) => set({ activeDragId }),
@@ -86,7 +94,8 @@ export const usePageBuilderStore = create<PageBuilderState>((set) => ({
   }),
 
   reorderSections: (fromIndex, toIndex) => set((state) => {
-    if (!state.draft || fromIndex === toIndex || fromIndex < 0 || toIndex < 0) return state;
+    const len = state.draft?.sections.length ?? 0;
+    if (!state.draft || fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= len || toIndex >= len) return state;
     return {
       draft: {
         ...state.draft,
@@ -104,6 +113,21 @@ export const usePageBuilderStore = create<PageBuilderState>((set) => ({
         sections: state.draft.sections.map((section) => (
           section.id === id
             ? { ...section, props: { ...section.props, ...patch } }
+            : section
+        )),
+      },
+      dirty: true,
+    };
+  }),
+
+  updateSectionStyles: (id, patch) => set((state) => {
+    if (!state.draft) return state;
+    return {
+      draft: {
+        ...state.draft,
+        sections: state.draft.sections.map((section) => (
+          section.id === id
+            ? { ...section, styles: { ...section.styles, ...patch } }
             : section
         )),
       },
