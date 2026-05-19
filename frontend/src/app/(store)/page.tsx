@@ -1,11 +1,12 @@
 import { API_URL } from "@/lib/config";
 import HomeView from "@/components/home/HomeView";
+import { getBuilderPublicPage, getBuilderComponents } from "@/page-builder/api";
 
 export const dynamic = "force-dynamic";
 
 async function getHomePageData() {
   try {
-    const res = await fetch(`${API_URL}/api/products?limit=100&featured=true`, {
+    const res = await fetch(`${API_URL}/api/products?limit=100`, {
       next: { revalidate: 60 } // Revalidate every 60 seconds
     });
     if (!res.ok) return [];
@@ -16,25 +17,14 @@ async function getHomePageData() {
     return [];
   }
 }
-async function getHomePageConfig() {
-  try {
-    const res = await fetch(`${API_URL}/api/builder/public/home`, {
-      cache: 'no-store'
-    });
-    if (!res.ok) return null;
-    const json = await res.json();
-    return json.data?.version?.document || null;
-  } catch (error) {
-    console.error("Failed to fetch home page config:", error);
-    return null;
-  }
-}
+
 
 export default async function Home() {
-  const [allProducts, config] = await Promise.all([
+  const [allProducts, config, dbComponents] = await Promise.all([
     getHomePageData(),
-    getHomePageConfig()
+    getBuilderPublicPage("home"),
+    getBuilderComponents()
   ]);
   
-  return <HomeView allProducts={allProducts} document={config} />;
+  return <HomeView allProducts={allProducts} document={config} dbComponents={dbComponents} />;
 }

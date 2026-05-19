@@ -504,6 +504,8 @@ model BuilderPageVersion {
   document    Json
   createdById String?
   publishedAt DateTime?
+  activeFrom  DateTime?
+  activeTo    DateTime?
   createdAt   DateTime    @default(now())
   page        BuilderPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
 
@@ -575,4 +577,50 @@ model Area {
 
   @@unique([name, cityId])
   @@index([cityId])
+}
+
+model BuilderTemplatePack {
+  id          String            @id @default(cuid())
+  key         String            @unique // e.g. "eid-2026"
+  name        String
+  status      String            @default("locked") // "locked" | "unlocked"
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  templates   BuilderTemplate[]
+}
+
+model BuilderTemplate {
+  id          String              @id @default(cuid())
+  packId      String
+  name        String              // e.g. "Eid Home Layout 1"
+  pageType    String              @default("home") // "home", "landing", etc.
+  document    Json                // The pre-configured JSON template
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  pack        BuilderTemplatePack @relation(fields: [packId], references: [id], onDelete: Cascade)
+
+  @@index([packId])
+}
+
+model BuilderComponent {
+  id        String                  @id @default(cuid())
+  name      String                  @unique // e.g. "HeroBanner"
+  label     String                  // e.g. "Hero Banner"
+  category  String                  // e.g. "Hero"
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+  contents  BuilderComponentContent[]
+}
+
+model BuilderComponentContent {
+  id          String           @id @default(cuid())
+  componentId String
+  key         String           // e.g. "title", "subtitle", "badges", etc.
+  value       Json             // Holds strings, objects, arrays, etc.
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  component   BuilderComponent @relation(fields: [componentId], references: [id], onDelete: Cascade)
+
+  @@unique([componentId, key])
+  @@index([componentId])
 }

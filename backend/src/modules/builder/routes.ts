@@ -6,6 +6,8 @@ const router = Router();
 const controller = new BuilderController();
 
 router.get('/public/:key', controller.getPublicPage);
+router.get('/components', controller.getComponents);
+router.get('/packs', authenticate, controller.getPacks);
 
 router.get('/pages/:key', authenticate, authorize('ADMIN', 'SUPER_ADMIN'), controller.getAdminPage);
 router.put('/pages/:key/draft', authenticate, authorize('ADMIN', 'SUPER_ADMIN'), controller.saveDraft);

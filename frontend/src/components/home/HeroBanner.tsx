@@ -12,6 +12,7 @@ interface HeroBannerProps {
   ctaHref?: string;
   imageSrc?: string;
   textAlign?: "left" | "center" | "right";
+  themeVariant?: "default" | "eid" | "puja";
 }
 
 export default function HeroBanner({
@@ -20,7 +21,8 @@ export default function HeroBanner({
   ctaText = "Shop Now",
   ctaHref = "/products",
   imageSrc = "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=800&q=80",
-  textAlign = "left"
+  textAlign = "left",
+  themeVariant = "default"
 }: HeroBannerProps) {
   const alignClass = {
     left: "text-center md:text-left items-center md:items-start md:mx-0",
@@ -28,8 +30,14 @@ export default function HeroBanner({
     right: "text-center md:text-right items-center md:items-end ml-auto md:mr-0"
   }[textAlign] || "text-center md:text-left items-center md:items-start md:mx-0";
 
+  const themeClasses = {
+    default: "bg-gradient-to-br from-orange-400 via-amber-400 to-orange-500",
+    eid: "bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-900",
+    puja: "bg-gradient-to-br from-red-600 via-rose-600 to-orange-700",
+  }[themeVariant] || "bg-gradient-to-br from-orange-400 via-amber-400 to-orange-500";
+
   return (
-    <section className="relative w-full overflow-hidden bg-gradient-to-br from-orange-400 via-amber-400 to-orange-500 animate-gradient">
+    <section className={`relative w-full overflow-hidden animate-gradient ${themeClasses}`}>
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center min-h-[400px] lg:min-h-[500px] py-8 md:py-0">
           {/* Left Content */}

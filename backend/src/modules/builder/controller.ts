@@ -230,18 +230,43 @@ export class BuilderController {
     res.json({ success: true, data: versions });
   });
 
+  getPacks = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const where = req.user?.role === 'SUPER_ADMIN' ? {} : { status: 'unlocked' };
+    const packs = await prisma.builderTemplatePack.findMany({
+      where,
+      include: { templates: true },
+    });
+    res.json({ success: true, data: packs });
+  });
+
   getPublicPage = asyncHandler(async (req: Request, res: Response) => {
     const key = getParam(req.params.key, 'page key');
     if (key === 'home') await this.ensureHomeSeed();
 
     const page = await prisma.builderPage.findUnique({ where: { key } });
-    if (!page || !page.publishedVersionId) {
+    if (!page) {
       throw new NotFoundError('Published page not found');
     }
 
-    const published = await prisma.builderPageVersion.findUnique({
-      where: { id: page.publishedVersionId },
+    const now = new Date();
+    
+    // 1. Try to find an active scheduled campaign version
+    let published = await prisma.builderPageVersion.findFirst({
+      where: {
+        pageId: page.id,
+        status: 'published',
+        activeFrom: { lte: now },
+        activeTo: { gte: now },
+      },
+      orderBy: { createdAt: 'desc' },
     });
+
+    // 2. Fall back to the default published version
+    if (!published && page.publishedVersionId) {
+      published = await prisma.builderPageVersion.findUnique({
+        where: { id: page.publishedVersionId },
+      });
+    }
 
     if (!published || published.status !== 'published') {
       throw new NotFoundError('Published page not found');
@@ -258,6 +283,33 @@ export class BuilderController {
           document: published.document,
         },
       },
+    });
+  });
+
+  getComponents = asyncHandler(async (req: Request, res: Response) => {
+    const components = await prisma.builderComponent.findMany({
+      include: {
+        contents: true,
+      },
+    });
+
+    const formatted = components.map((comp) => {
+      const defaultProps: Record<string, any> = {};
+      for (const content of comp.contents) {
+        defaultProps[content.key] = content.value;
+      }
+      return {
+        id: comp.id,
+        name: comp.name,
+        label: comp.label,
+        category: comp.category,
+        defaultProps,
+      };
+    });
+
+    res.json({
+      success: true,
+      data: formatted,
     });
   });
 }

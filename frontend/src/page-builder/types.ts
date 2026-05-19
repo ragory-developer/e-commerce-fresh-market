@@ -16,11 +16,24 @@ export interface BuilderPageDocument {
   };
 }
 
+export interface BuilderSectionStyles {
+  spacingTop?: "none" | "sm" | "md" | "lg" | "xl";
+  spacingBottom?: "none" | "sm" | "md" | "lg" | "xl";
+  background?: "white" | "gray" | "brand" | "dark";
+  container?: "full" | "contained" | "narrow";
+  customClass?: string;
+  customBgColor?: string;
+  customBgImage?: string;
+  customTextColor?: string;
+  customPadding?: string;
+  customAlignment?: "left" | "center" | "right";
+}
+
 export interface BuilderSection {
   id: string;
   type: string;
   props: Record<string, unknown>;
-  styles?: Record<string, unknown>;
+  styles?: BuilderSectionStyles;
   settings?: {
     hidden?: boolean;
     container?: "full" | "contained";
@@ -36,6 +49,7 @@ export interface SectionEditorProps<TProps extends Record<string, unknown> = Rec
 
 export interface SectionRenderContext {
   allProducts?: unknown[];
+  dbComponents?: any[];
 }
 
 export interface SectionDefinition<TProps extends Record<string, unknown> = Record<string, unknown>> {

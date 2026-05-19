@@ -19,9 +19,11 @@ import {
   Undo2,
 } from "lucide-react";
 import EditableSection from "@/components/admin/HomeBuilder/wrappers/EditableSection";
+import { InputField, SegmentedControl, TextAreaField, MediaPickerField } from "@/page-builder/editors";
 import { availableSections, resolveSectionProps, sectionRegistry } from "@/page-builder/registry";
 import type { BuilderPageDocument, BuilderSection } from "@/page-builder/types";
 import { usePageBuilderStore } from "@/store/pageBuilderStore";
+import { resolveStyleClasses } from "@/page-builder/styleTokens";
 
 type DragEventLike = {
   operation?: {
@@ -38,13 +40,13 @@ function authHeaders() {
   };
 }
 
-function createFallbackDocument(): BuilderPageDocument {
+function createFallbackDocument(key: string, title: string, slug: string): BuilderPageDocument {
   return {
     schemaVersion: 1,
     page: {
-      key: "home",
-      slug: "/",
-      title: "Home",
+      key,
+      slug,
+      title,
     },
     sections: [],
   };
@@ -60,7 +62,17 @@ function normalizeCategories(categories: unknown[]) {
   }).filter((category): category is { id: string; name: string } => Boolean(category.id && category.name));
 }
 
-export default function HomeBuilderView({ allProducts = [] }: { allProducts?: unknown[] }) {
+export default function HomeBuilderView({
+  pageKey,
+  pageTitle = "Page",
+  pageSlug = `/${pageKey}`,
+  allProducts = [],
+}: {
+  pageKey: string;
+  pageTitle?: string;
+  pageSlug?: string;
+  allProducts?: unknown[];
+}) {
   const {
     draft,
     draftVersionId,
@@ -69,6 +81,7 @@ export default function HomeBuilderView({ allProducts = [] }: { allProducts?: un
     dirty,
     previewMode,
     hydrate,
+    applyTemplate,
     setSelectedSectionId,
     setActiveDragId,
     setPreviewMode,
@@ -76,6 +89,7 @@ export default function HomeBuilderView({ allProducts = [] }: { allProducts?: un
     removeSection,
     reorderSections,
     updateSectionProps,
+    updateSectionStyles,
     markSaved,
     markPublished,
   } = usePageBuilderStore();
@@ -84,21 +98,31 @@ export default function HomeBuilderView({ allProducts = [] }: { allProducts?: un
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
+  const [activeSectionTab, setActiveSectionTab] = useState<"content" | "design">("content");
   const previousSectionIdsRef = useRef<Set<string> | null>(null);
 
   const fetchBuilderPage = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/builder/pages/home`, {
+      const res = await fetch(`${API_URL}/api/builder/pages/${pageKey}`, {
         headers: authHeaders(),
         cache: "no-store",
       });
       const json = await res.json();
       if (!res.ok || !json.success) {
-        throw new Error(json.message || "Failed to load builder page");
+        throw new Error(json.message || `Failed to load ${pageTitle} builder page`);
       }
+      
+      const hydratedDraft = json.data.draft || {
+        id: "",
+        version: 0,
+        status: "draft",
+        document: createFallbackDocument(pageKey, pageTitle, pageSlug),
+        createdAt: new Date().toISOString(),
+      };
+
       hydrate({
-        draft: json.data.draft,
+        draft: hydratedDraft,
         published: json.data.published,
       });
     } catch (error: unknown) {
@@ -107,12 +131,12 @@ export default function HomeBuilderView({ allProducts = [] }: { allProducts?: un
           id: "",
           version: 0,
           status: "draft",
-          document: createFallbackDocument(),
+          document: createFallbackDocument(pageKey, pageTitle, pageSlug),
           createdAt: new Date().toISOString(),
         },
         published: null,
       });
-      toast.error(error instanceof Error ? error.message : "Failed to load home builder");
+      toast.error(error instanceof Error ? error.message : `Failed to load ${pageTitle} builder`);
     } finally {
       setLoading(false);
     }
@@ -139,7 +163,7 @@ export default function HomeBuilderView({ allProducts = [] }: { allProducts?: un
     if (!draft) return;
     setSaving(true);
     try {
-      const res = await fetch(`${API_URL}/api/builder/pages/home/draft`, {
+      const res = await fetch(`${API_URL}/api/builder/pages/${pageKey}/draft`, {
         method: "PUT",
         headers: authHeaders(),
         body: JSON.stringify({ document: draft }),
@@ -163,7 +187,7 @@ export default function HomeBuilderView({ allProducts = [] }: { allProducts?: un
     try {
       let versionId = draftVersionId;
       if (dirty || !versionId) {
-        const saveRes = await fetch(`${API_URL}/api/builder/pages/home/draft`, {
+        const saveRes = await fetch(`${API_URL}/api/builder/pages/${pageKey}/draft`, {
           method: "PUT",
           headers: authHeaders(),
           body: JSON.stringify({ document: draft }),
@@ -179,7 +203,7 @@ export default function HomeBuilderView({ allProducts = [] }: { allProducts?: un
         markSaved(versionId);
       }
 
-      const publishRes = await fetch(`${API_URL}/api/builder/pages/home/publish`, {
+      const publishRes = await fetch(`${API_URL}/api/builder/pages/${pageKey}/publish`, {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify({ draftVersionId: versionId }),
@@ -190,7 +214,7 @@ export default function HomeBuilderView({ allProducts = [] }: { allProducts?: un
       }
 
       markPublished(publishJson.data.published.id, publishJson.data.published.document);
-      toast.success("Homepage published");
+      toast.success(`${pageTitle} published`);
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Failed to publish page");
     } finally {
@@ -214,6 +238,7 @@ export default function HomeBuilderView({ allProducts = [] }: { allProducts?: un
 
   useEffect(() => {
     if (!selectedSectionId) return;
+    setActiveSectionTab("content");
 
     const timer = window.setTimeout(() => {
       const editor = document.querySelector(`[data-section-editor="${selectedSectionId}"]`);
@@ -260,6 +285,37 @@ export default function HomeBuilderView({ allProducts = [] }: { allProducts?: un
     }
 
     const Renderer = definition.Renderer;
+    const styleClasses = resolveStyleClasses(section.styles);
+    const customClass = section.styles?.customClass || "";
+    const combinedClass = [styleClasses, customClass].filter(Boolean).join(" ");
+
+    const inlineStyles: React.CSSProperties = {};
+    if (section.styles?.customBgColor) {
+      inlineStyles.backgroundColor = section.styles.customBgColor;
+    }
+    if (section.styles?.customBgImage) {
+      inlineStyles.backgroundImage = `url(${section.styles.customBgImage})`;
+      inlineStyles.backgroundSize = "cover";
+      inlineStyles.backgroundPosition = "center";
+      inlineStyles.backgroundRepeat = "no-repeat";
+    }
+    if (section.styles?.customTextColor) {
+      inlineStyles.color = section.styles.customTextColor;
+    }
+    if (section.styles?.customPadding) {
+      inlineStyles.padding = section.styles.customPadding;
+    }
+    if (section.styles?.customAlignment) {
+      inlineStyles.textAlign = section.styles.customAlignment;
+    }
+
+    if (combinedClass || Object.keys(inlineStyles).length > 0) {
+      return (
+        <div className={combinedClass} style={inlineStyles}>
+          <Renderer {...props} />
+        </div>
+      );
+    }
     return <Renderer {...props} />;
   };
 
@@ -298,7 +354,7 @@ export default function HomeBuilderView({ allProducts = [] }: { allProducts?: un
           <div className="border-b border-gray-200 bg-gray-950 px-4 py-3 text-white">
             <div className="mb-3 flex items-center gap-2 text-lg font-black">
               <LayoutTemplate className="text-emerald-400" />
-              Home Builder
+              {pageTitle} Builder
             </div>
             <div className="grid grid-cols-2 gap-2">
               <button
@@ -332,43 +388,45 @@ export default function HomeBuilderView({ allProducts = [] }: { allProducts?: un
           <div className="flex-1 overflow-y-auto">
             {!activeSection || !activeDefinition ? (
               <div className="p-4">
-                <h3 className="mb-1 text-lg font-black text-gray-900">Component Library</h3>
-                <p className="mb-5 text-sm leading-5 text-gray-500">Choose a polished storefront block. Newly added sections are selected automatically for editing.</p>
-                <div className="space-y-5">
-                  {Object.entries(sectionGroups).map(([category, definitions]) => (
-                    <div key={category}>
-                      <div className="mb-2 flex items-center justify-between">
-                        <h4 className="text-xs font-black uppercase tracking-wider text-gray-400">{category}</h4>
-                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-black text-gray-400">{definitions.length}</span>
-                      </div>
-                      <div className="space-y-2">
-                        {definitions.map((definition) => (
-                          <button
-                            key={definition.type}
-                            type="button"
-                            onClick={() => addSection(definition.type)}
-                            className="group flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white px-3.5 py-3 text-left transition hover:-translate-y-0.5 hover:border-emerald-500 hover:bg-emerald-50 hover:shadow-lg hover:shadow-emerald-500/10"
-                          >
-                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500 transition group-hover:bg-emerald-500 group-hover:text-white">
-                              <LayoutTemplate size={17} />
-                            </span>
-                            <span className="min-w-0 flex-1">
-                              <span className="block truncate text-sm font-black text-gray-800">{definition.label}</span>
-                              <span className="mt-0.5 block line-clamp-2 text-xs font-medium leading-4 text-gray-500">
-                                {definition.description || "Reusable storefront section"}
-                              </span>
-                            </span>
-                            <Plus className="shrink-0 text-emerald-500 opacity-0 transition group-hover:opacity-100" size={16} />
-                          </button>
-                        ))}
-                      </div>
+                <>
+                  <h3 className="mb-1 text-lg font-black text-gray-900">Component Library</h3>
+                    <p className="mb-5 text-sm leading-5 text-gray-500">Choose a polished storefront block. Newly added sections are selected automatically for editing.</p>
+                    <div className="space-y-5">
+                      {Object.entries(sectionGroups).map(([category, definitions]) => (
+                        <div key={category}>
+                          <div className="mb-2 flex items-center justify-between">
+                            <h4 className="text-xs font-black uppercase tracking-wider text-gray-400">{category}</h4>
+                            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-black text-gray-400">{definitions.length}</span>
+                          </div>
+                          <div className="space-y-2">
+                            {definitions.map((definition) => (
+                              <button
+                                key={definition.type}
+                                type="button"
+                                onClick={() => addSection(definition.type)}
+                                className="group flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white px-3.5 py-3 text-left transition hover:-translate-y-0.5 hover:border-emerald-500 hover:bg-emerald-50 hover:shadow-lg hover:shadow-emerald-500/10"
+                              >
+                                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500 transition group-hover:bg-emerald-500 group-hover:text-white">
+                                  <LayoutTemplate size={17} />
+                                </span>
+                                <span className="min-w-0 flex-1">
+                                  <span className="block truncate text-sm font-black text-gray-800">{definition.label}</span>
+                                  <span className="mt-0.5 block line-clamp-2 text-xs font-medium leading-4 text-gray-500">
+                                    {definition.description || "Reusable storefront section"}
+                                  </span>
+                                </span>
+                                <Plus className="shrink-0 text-emerald-500 opacity-0 transition group-hover:opacity-100" size={16} />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                </>
               </div>
             ) : (
               <div className="flex h-full flex-col">
-                <div className="flex items-center gap-3 border-b border-gray-200 bg-gray-50 p-4">
+                <div className="flex items-center gap-3 border-b border-gray-200 bg-gray-50 p-4 pb-2">
                   <button
                     type="button"
                     onClick={() => setSelectedSectionId(null)}
@@ -390,15 +448,166 @@ export default function HomeBuilderView({ allProducts = [] }: { allProducts?: un
                     <Trash2 size={18} />
                   </button>
                 </div>
+                
+                <div className="flex border-b border-gray-200 bg-gray-50/50 px-4 py-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setActiveSectionTab("content")}
+                    className={`flex-1 rounded-md py-1.5 text-xs font-black transition ${
+                      activeSectionTab === "content"
+                        ? "bg-white text-emerald-600 shadow-sm border border-gray-200/50"
+                        : "text-gray-500 hover:text-gray-955"
+                    }`}
+                  >
+                    Content
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveSectionTab("design")}
+                    className={`flex-1 rounded-md py-1.5 text-xs font-black transition ${
+                      activeSectionTab === "design"
+                        ? "bg-white text-emerald-600 shadow-sm border border-gray-200/50"
+                        : "text-gray-500 hover:text-gray-955"
+                    }`}
+                  >
+                    Design & Style
+                  </button>
+                </div>
+                
                 <div className="flex-1 overflow-y-auto p-5" data-section-editor={activeSection.id}>
-                  {activeDefinition.Editor ? (
-                    <activeDefinition.Editor
-                      section={activeSection}
-                      props={activeSection.props}
-                      categories={categories}
-                      onChange={(patch) => updateSectionProps(activeSection.id, patch)}
-                    />
-                  ) : null}
+                  {activeSectionTab === "content" ? (
+                    activeDefinition.Editor ? (
+                      <activeDefinition.Editor
+                        section={activeSection}
+                        props={activeSection.props}
+                        categories={categories}
+                        onChange={(patch) => updateSectionProps(activeSection.id, patch)}
+                      />
+                    ) : (
+                      <div className="text-sm font-semibold text-gray-400 text-center py-8">
+                        This component has no configurable content settings.
+                      </div>
+                    )
+                  ) : (
+                    <div className="space-y-5 text-sm">
+                      <div className="space-y-4">
+                        <h4 className="text-xs font-black uppercase tracking-wider text-gray-400">Background Design</h4>
+                        
+                        <label className="block">
+                          <span className="mb-1.5 block text-xs font-black uppercase tracking-wider text-gray-500">
+                            Background Color Theme
+                          </span>
+                          <select
+                            value={activeSection.styles?.customBgColor || "transparent"}
+                            onChange={(e) => updateSectionStyles(activeSection.id, { customBgColor: e.target.value })}
+                            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
+                          >
+                            <option value="transparent">Transparent / Default</option>
+                            <option value="#ffffff">Pure White</option>
+                            <option value="#090d16">Sleek Dark</option>
+                            <option value="#f0fdf4">Fresh Organic Green</option>
+                            <option value="#fffbeb">Warm Sunset Gold</option>
+                            <option value="#f0f9ff">Clear Ocean Blue</option>
+                            <option value="#f9fafb">Soft Cozy Gray</option>
+                            <option value="#fef2f2">Festive Soft Red</option>
+                          </select>
+                        </label>
+
+                        <MediaPickerField
+                          label="Background Image"
+                          value={activeSection.styles?.customBgImage || ""}
+                          onChange={(customBgImage) => updateSectionStyles(activeSection.id, { customBgImage })}
+                        />
+                      </div>
+ 
+                      <div className="space-y-4 pt-4 border-t border-gray-100">
+                        <h4 className="text-xs font-black uppercase tracking-wider text-gray-400">Layout & Sizing</h4>
+                        
+                        <label className="block">
+                          <span className="mb-1.5 block text-xs font-black uppercase tracking-wider text-gray-500">
+                            Section Padding
+                          </span>
+                          <select
+                            value={activeSection.styles?.customPadding || "0px"}
+                            onChange={(e) => updateSectionStyles(activeSection.id, { customPadding: e.target.value })}
+                            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
+                          >
+                            <option value="0px">None (0px)</option>
+                            <option value="24px 16px">Small (24px V, 16px H)</option>
+                            <option value="48px 32px">Medium (48px V, 32px H)</option>
+                            <option value="80px 48px">Large (80px V, 48px H)</option>
+                            <option value="120px 64px">Extra Large (120px V, 64px H)</option>
+                          </select>
+                        </label>
+
+                        <SegmentedControl
+                          label="Text Alignment"
+                          value={activeSection.styles?.customAlignment || "left"}
+                          options={[
+                            { label: "Left", value: "left" },
+                            { label: "Center", value: "center" },
+                            { label: "Right", value: "right" },
+                          ]}
+                          onChange={(customAlignment) => updateSectionStyles(activeSection.id, { customAlignment: customAlignment as any })}
+                        />
+
+                        <label className="block">
+                          <span className="mb-1.5 block text-xs font-black uppercase tracking-wider text-gray-500">
+                            Text Color
+                          </span>
+                          <select
+                            value={activeSection.styles?.customTextColor || "inherit"}
+                            onChange={(e) => updateSectionStyles(activeSection.id, { customTextColor: e.target.value })}
+                            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
+                          >
+                            <option value="inherit">Default / Inherit</option>
+                            <option value="#1f2937">Dark Charcoal</option>
+                            <option value="#6b7280">Muted Gray</option>
+                            <option value="#ffffff">Pure White</option>
+                            <option value="#15803d">Forest Green</option>
+                          </select>
+                        </label>
+                      </div>
+ 
+                      <div className="space-y-4 pt-4 border-t border-gray-100">
+                        <h4 className="text-xs font-black uppercase tracking-wider text-gray-400">Predefined Framework Spacing</h4>
+                        <SegmentedControl
+                          label="Spacing Top"
+                          value={activeSection.styles?.spacingTop || "none"}
+                          options={[
+                            { label: "None", value: "none" },
+                            { label: "SM", value: "sm" },
+                            { label: "MD", value: "md" },
+                            { label: "LG", value: "lg" },
+                            { label: "XL", value: "xl" },
+                          ]}
+                          onChange={(spacingTop) => updateSectionStyles(activeSection.id, { spacingTop: spacingTop as any })}
+                        />
+                        <SegmentedControl
+                          label="Spacing Bottom"
+                          value={activeSection.styles?.spacingBottom || "none"}
+                          options={[
+                            { label: "None", value: "none" },
+                            { label: "SM", value: "sm" },
+                            { label: "MD", value: "md" },
+                            { label: "LG", value: "lg" },
+                            { label: "XL", value: "xl" },
+                          ]}
+                          onChange={(spacingBottom) => updateSectionStyles(activeSection.id, { spacingBottom: spacingBottom as any })}
+                        />
+                        <SegmentedControl
+                          label="Container Width"
+                          value={activeSection.styles?.container || "full"}
+                          options={[
+                            { label: "Full Width", value: "full" },
+                            { label: "Contained", value: "contained" },
+                            { label: "Narrow", value: "narrow" },
+                          ]}
+                          onChange={(container) => updateSectionStyles(activeSection.id, { container: container as any })}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

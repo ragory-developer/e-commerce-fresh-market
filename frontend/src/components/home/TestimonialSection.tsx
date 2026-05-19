@@ -18,41 +18,10 @@ interface TestimonialSectionProps {
   testimonials?: Testimonial[];
 }
 
-const defaultTestimonials: Testimonial[] = [
-  {
-    name: "Sarah Johnson",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80",
-    rating: 5,
-    review: "Absolutely love the glow serum! My skin has never looked better. Saw visible results within just 2 weeks of daily use.",
-    product: "Radiance Glow Serum",
-  },
-  {
-    name: "Emily Chen",
-    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=150&q=80",
-    rating: 5,
-    review: "The moisturizer is so hydrating without being heavy. Perfect for my combination skin type. Highly recommend!",
-    product: "Hydra Boost Moisturizer",
-  },
-  {
-    name: "Aisha Rahman",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
-    rating: 4,
-    review: "Great value for money. The vitamin C serum helped fade my dark spots significantly. Will repurchase for sure.",
-    product: "Vitamin C Brightening Serum",
-  },
-  {
-    name: "Lisa Park",
-    avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=150&q=80",
-    rating: 5,
-    review: "The sunscreen is lightweight and doesn't leave a white cast. Finally found my HG sunscreen! Perfect under makeup.",
-    product: "Invisible Shield SPF 50",
-  },
-];
-
 export default function TestimonialSection({
   title = "Real Results, Real Beauty",
   subtitle = "See what our customers are saying",
-  testimonials = defaultTestimonials,
+  testimonials = [],
 }: TestimonialSectionProps) {
   return (
     <section className="py-12 lg:py-20 bg-gradient-to-b from-rose-50 via-pink-50 to-white dark:from-gray-900 dark:via-gray-900 dark:to-gray-950">

@@ -20,45 +20,10 @@ interface HotDealsSectionProps {
   deals?: HotDeal[];
 }
 
-const defaultDeals: HotDeal[] = [
-  {
-    name: "Premium Face Wash Bundle",
-    originalPrice: "৳1,800",
-    salePrice: "৳999",
-    discount: "45% OFF",
-    image: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&w=400&q=80",
-    endsIn: "2d 14h",
-  },
-  {
-    name: "Korean Skincare Set",
-    originalPrice: "৳3,500",
-    salePrice: "৳2,100",
-    discount: "40% OFF",
-    image: "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=400&q=80",
-    endsIn: "1d 8h",
-  },
-  {
-    name: "Anti-Aging Combo Pack",
-    originalPrice: "৳4,200",
-    salePrice: "৳2,520",
-    discount: "40% OFF",
-    image: "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?auto=format&fit=crop&w=400&q=80",
-    endsIn: "3d 5h",
-  },
-  {
-    name: "SPF Protection Kit",
-    originalPrice: "৳2,000",
-    salePrice: "৳1,200",
-    discount: "40% OFF",
-    image: "https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?auto=format&fit=crop&w=400&q=80",
-    endsIn: "5h 30m",
-  },
-];
-
 export default function HotDealsSection({
   title = "Hot Deals",
   subtitle = "Grab them before they're gone!",
-  deals = defaultDeals,
+  deals = [],
 }: HotDealsSectionProps) {
   return (
     <section className="py-12 lg:py-20 bg-gradient-to-b from-white to-gray-50 dark:from-gray-950 dark:to-gray-900">

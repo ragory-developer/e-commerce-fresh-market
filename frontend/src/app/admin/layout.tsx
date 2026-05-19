@@ -15,7 +15,7 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
   const isLoginPage = pathname === '/admin/login';
-  const isBuilderPage = pathname === '/admin/home-builder';
+  const isBuilderPage = pathname === '/admin/home-builder' || pathname.startsWith('/admin/builder/');
 
   useEffect(() => {
     if (!loading && !isLoginPage && (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN'))) {

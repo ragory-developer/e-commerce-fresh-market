@@ -3,7 +3,7 @@ import HomeBuilderView from "@/components/admin/HomeBuilder/HomeBuilderView";
 
 export const dynamic = "force-dynamic";
 
-async function getHomePageData() {
+async function getProductsData() {
   try {
     const res = await fetch(`${API_URL}/api/products?limit=100&featured=true`, {
       cache: 'no-store'
@@ -17,13 +17,24 @@ async function getHomePageData() {
   }
 }
 
-export default async function HomeBuilderPage() {
-  const allProducts = await getHomePageData();
+interface PageProps {
+  params: Promise<{
+    key: string;
+  }>;
+}
+
+export default async function GenericBuilderPage({ params }: PageProps) {
+  const { key } = await params;
+  const allProducts = await getProductsData();
+  
+  const title = key.charAt(0).toUpperCase() + key.slice(1);
+  const slug = `/${key}`;
+  
   return (
     <HomeBuilderView
-      pageKey="home"
-      pageTitle="Home"
-      pageSlug="/"
+      pageKey={key}
+      pageTitle={title}
+      pageSlug={slug}
       allProducts={allProducts}
     />
   );
