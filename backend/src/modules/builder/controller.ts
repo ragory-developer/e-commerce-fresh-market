@@ -4,7 +4,7 @@ import prisma from '../../config/database';
 import { asyncHandler } from '../../utils/helpers';
 import { BadRequestError, NotFoundError } from '../../utils/errors';
 import { AuthRequest } from '../../middleware/auth';
-import { BuilderDocument, createDefaultHomeDocument, validateBuilderDocument } from './schema';
+import { BuilderDocument, validateBuilderDocument, createDefaultHomeDocument } from './schema';
 
 function getParam(value: string | string[] | undefined, name: string) {
   if (typeof value !== 'string') {
@@ -18,10 +18,11 @@ function toInputJson(document: BuilderDocument): Prisma.InputJsonValue {
 }
 
 function normalizePageMeta(key: string, document?: BuilderDocument) {
+  const isKeyMatch = document?.page.key === key;
   return {
     key,
-    slug: document?.page.slug || (key === 'home' ? '/' : `/${key}`),
-    title: document?.page.title || (key === 'home' ? 'Home' : key),
+    slug: (isKeyMatch ? document?.page.slug : null) || (key === 'home' ? '/' : `/${key}`),
+    title: (isKeyMatch ? document?.page.title : null) || (key === 'home' ? 'Home' : key),
   };
 }
 
@@ -51,7 +52,14 @@ export class BuilderController {
 
     if (existing && existing.versions.length > 0) return;
 
-    const document = createDefaultHomeDocument();
+    const defaultTemplate = await prisma.builderTemplate.findUnique({
+      where: { key: 'default-home' },
+    });
+
+    const document = defaultTemplate
+      ? (defaultTemplate.document as any)
+      : createDefaultHomeDocument();
+
     await prisma.$transaction(async (tx) => {
       const page = existing || await tx.builderPage.create({
         data: {
@@ -284,6 +292,129 @@ export class BuilderController {
         },
       },
     });
+  });
+
+  getTemplates = asyncHandler(async (req: Request, res: Response) => {
+    const scope = req.query.scope as string;
+    const themeKey = req.query.themeKey as string;
+    const pageType = req.query.pageType as string;
+
+    const where: any = {};
+    if (scope) where.scope = scope;
+    if (themeKey) {
+      where.themeKey = themeKey === 'null' ? null : themeKey;
+    }
+    if (pageType) where.pageType = pageType;
+
+    const templates = await prisma.builderTemplate.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json({ success: true, data: templates });
+  });
+
+  getTemplateById = asyncHandler(async (req: Request, res: Response) => {
+    const id = getParam(req.params.id, 'id');
+    const template = await prisma.builderTemplate.findUnique({ where: { id } });
+    if (!template) throw new NotFoundError('Builder template not found');
+    res.json({ success: true, data: template });
+  });
+
+  createTemplate = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const { key, name, scope, pageType, themeKey, thumbnail, document } = req.body;
+
+    if (!name || !scope || !document) {
+      throw new BadRequestError('Name, scope, and document are required');
+    }
+
+    if (scope === 'page' || scope === 'theme') {
+      try {
+        validateBuilderDocument(document);
+      } catch (err: any) {
+        throw new BadRequestError(err.message || 'Invalid builder document');
+      }
+    }
+
+    const generatedKey = key || `${scope}-${Date.now()}`;
+
+    const template = await prisma.builderTemplate.create({
+      data: {
+        key: generatedKey,
+        name,
+        scope,
+        pageType: pageType || 'home',
+        themeKey: themeKey || null,
+        thumbnail: thumbnail || null,
+        document: JSON.parse(JSON.stringify(document)),
+        isSystem: false,
+        createdById: req.user?.userId,
+      },
+    });
+
+    res.status(201).json({ success: true, data: template, message: 'Template saved' });
+  });
+
+  applyTemplate = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const key = getParam(req.params.key, 'page key');
+    const { templateId } = req.body;
+    if (!templateId) throw new BadRequestError('templateId is required');
+
+    const template = await prisma.builderTemplate.findUnique({ where: { id: templateId } });
+    if (!template) throw new NotFoundError('Template not found');
+
+    const result = await prisma.$transaction(async (tx) => {
+      // Ensure target page exists, resolving meta from target page key
+      const page = await this.ensurePage(key);
+      
+      const latest = await tx.builderPageVersion.findFirst({
+        where: { pageId: page.id },
+        orderBy: { version: 'desc' },
+      });
+
+      // Clone template document and update its page metadata to match target page
+      const clonedDoc = JSON.parse(JSON.stringify(template.document)) as BuilderDocument;
+      clonedDoc.page = {
+        key: page.key,
+        slug: page.slug,
+        title: page.title,
+      };
+
+      const draft = await tx.builderPageVersion.create({
+        data: {
+          pageId: page.id,
+          version: (latest?.version || 0) + 1,
+          status: 'draft',
+          document: toInputJson(clonedDoc),
+          createdById: req.user?.userId,
+        },
+      });
+
+      const updatedPage = await tx.builderPage.update({
+        where: { id: page.id },
+        data: {
+          status: page.publishedVersionId ? 'published' : 'draft',
+          draftVersionId: draft.id,
+        },
+      });
+
+      return { page: updatedPage, draft };
+    });
+
+    res.json({ success: true, data: result, message: 'Template applied as draft' });
+  });
+
+  deleteTemplate = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const id = getParam(req.params.id, 'id');
+    const template = await prisma.builderTemplate.findUnique({ where: { id } });
+    if (!template) throw new NotFoundError('Template not found');
+ 
+    if (template.isSystem) {
+       throw new BadRequestError('System templates cannot be deleted');
+    }
+ 
+    await prisma.builderTemplate.delete({ where: { id } });
+    res.json({ success: true, message: 'Template deleted successfully' });
   });
 
   getComponents = asyncHandler(async (req: Request, res: Response) => {

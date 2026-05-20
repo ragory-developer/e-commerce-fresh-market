@@ -50,30 +50,48 @@ export function MediaPickerField({
   onChange: (value: string) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const imageUrl = String(value || "");
 
   return (
     <div className="block">
       <span className="mb-1.5 block text-xs font-black uppercase tracking-wider text-gray-500">
         {label}
       </span>
-      <div className="flex gap-2">
-        <input
-          id={id}
-          data-builder-input
-          type="text"
-          value={String(value || "")}
-          placeholder="https://..."
-          onChange={(event) => onChange(event.target.value)}
-          className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-medium text-gray-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
-        />
+      <input type="hidden" id={id} value={imageUrl} />
+      <div className="flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+        {imageUrl ? (
+          <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-650 bg-white shrink-0">
+            <img src={imageUrl} alt="Selected" className="w-full h-full object-cover" />
+          </div>
+        ) : (
+          <div className="w-12 h-12 rounded-lg bg-gray-200 dark:bg-gray-750 flex items-center justify-center text-gray-400 shrink-0">
+            <ImageIcon size={20} />
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 truncate">
+            {imageUrl ? imageUrl.split("/").pop() : "No image selected"}
+          </p>
+          <p className="text-[10px] text-gray-400 dark:text-gray-500 truncate">
+            {imageUrl || "Click browse to select"}
+          </p>
+        </div>
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-xs font-bold text-gray-700 hover:bg-gray-50 transition shrink-0"
+          className="flex items-center gap-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition shrink-0"
         >
-          <ImageIcon size={16} />
           Browse
         </button>
+        {imageUrl && (
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            className="text-xs font-bold text-rose-600 hover:text-rose-700 px-2 py-2 transition shrink-0"
+          >
+            Remove
+          </button>
+        )}
       </div>
 
       <MediaLibraryModal
@@ -183,6 +201,301 @@ function sectionInputId(sectionId: string, field: string) {
   return `input-${sectionId}-${field}`;
 }
 
+export function ProductEditorFields({ section, props, categories, onChange }: { section: any; props: any; categories: any[]; onChange: (patch: any) => void }) {
+  const inputId = (field: string) => sectionInputId(section.id, field);
+  const sourceType = props.sourceType || "all";
+  const layoutType = props.layoutType || "grid";
+  const cols = props.cols != null ? Number(props.cols) : 5;
+  const gap = props.gap || "md";
+  const cardVariant = props.cardVariant || "classic";
+  const cardRadius = props.cardRadius || "3xl";
+  const badgeStyle = props.badgeStyle || "pill";
+
+  const sourceTypeOptions = [
+    { label: "All Products", value: "all" },
+    { label: "Filter by Category", value: "category" },
+    { label: "Featured Products", value: "featured" },
+    { label: "Products on Sale", value: "sale" },
+    { label: "Manual Selection", value: "manual" },
+  ];
+
+  const sortOptions = [
+    { label: "Default Order", value: "default" },
+    { label: "Price: Low to High", value: "price-asc" },
+    { label: "Price: High to Low", value: "price-desc" },
+    { label: "Newest Arrivals", value: "newest" },
+    { label: "Customer Rating", value: "rating" },
+    { label: "Biggest Discount", value: "discount" },
+  ];
+
+  const colOptions = [
+    { label: "3 Cols", value: "3" },
+    { label: "4 Cols", value: "4" },
+    { label: "5 Cols", value: "5" },
+    { label: "6 Cols", value: "6" },
+  ];
+
+  const gapOptions = [
+    { label: "Small", value: "sm" },
+    { label: "Medium", value: "md" },
+    { label: "Large", value: "lg" },
+  ];
+
+  const variantOptions = [
+    { label: "Classic Card", value: "classic" },
+    { label: "Sleek Glass", value: "sleek" },
+    { label: "Minimalist", value: "minimal" },
+  ];
+
+  const radiusOptions = [
+    { label: "No Rounding (None)", value: "none" },
+    { label: "Small (SM)", value: "sm" },
+    { label: "Medium (MD)", value: "md" },
+    { label: "Large (LG)", value: "lg" },
+    { label: "Extra Large (XL)", value: "xl" },
+    { label: "Double XL (2XL)", value: "2xl" },
+    { label: "Triple XL (3XL)", value: "3xl" },
+    { label: "Full Capsule (Full)", value: "full" },
+  ];
+
+  const badgeStyleOptions = [
+    { label: "Pill Tag", value: "pill" },
+    { label: "Tight Corner", value: "corner" },
+    { label: "Diagonal Ribbon", value: "ribbon" },
+  ];
+
+  return (
+    <>
+      <EditorSection title="Data Source & Query">
+        <label className="block">
+          <span className="mb-1.5 block text-xs font-black uppercase tracking-wider text-gray-500">
+            Source Type
+          </span>
+          <select
+            id={inputId("sourceType")}
+            value={sourceType}
+            onChange={(e) => onChange({ sourceType: e.target.value })}
+            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
+          >
+            {sourceTypeOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        {sourceType === "category" && (
+          <label className="block">
+            <span className="mb-1.5 block text-xs font-black uppercase tracking-wider text-gray-500">
+              Category
+            </span>
+            <select
+              id={inputId("showcaseCategoryId")}
+              value={String(props.showcaseCategoryId || props.categoryId || "all")}
+              onChange={(e) => onChange({ showcaseCategoryId: e.target.value, categoryId: e.target.value })}
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
+            >
+              <option value="all">All Categories</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+
+        {sourceType === "manual" && (
+          <InputField
+            id={inputId("manualProductIds")}
+            label="Product IDs / Slugs (Comma separated)"
+            value={props.manualProductIds}
+            placeholder="e.g. skin-glow-serum, organic-aloe-gel"
+            onChange={(manualProductIds) => onChange({ manualProductIds })}
+          />
+        )}
+
+        <div className="grid grid-cols-2 gap-4">
+          <label className="block">
+            <span className="mb-1.5 block text-xs font-black uppercase tracking-wider text-gray-500">
+              Max Items
+            </span>
+            <input
+              id={inputId("limit")}
+              type="number"
+              value={props.limit != null ? Number(props.limit) : 10}
+              min={1}
+              max={50}
+              onChange={(e) => onChange({ limit: Number(e.target.value) || 10 })}
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm font-medium text-gray-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-1.5 block text-xs font-black uppercase tracking-wider text-gray-500">
+              Sort By
+            </span>
+            <select
+              id={inputId("sort")}
+              value={String(props.sort || "default")}
+              onChange={(e) => onChange({ sort: e.target.value })}
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
+            >
+              {sortOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </EditorSection>
+
+      <EditorSection title="Layout Configuration">
+        <SegmentedControl
+          id={inputId("layoutType")}
+          label="Display Style"
+          value={layoutType}
+          options={[
+            { label: "Grid View", value: "grid" },
+            { label: "Carousel Slider", value: "carousel" },
+          ]}
+          onChange={(val) => onChange({ layoutType: val })}
+        />
+
+        <div className="grid grid-cols-2 gap-4">
+          <label className="block">
+            <span className="mb-1.5 block text-xs font-black uppercase tracking-wider text-gray-500">
+              Grid/Slide columns
+            </span>
+            <select
+              id={inputId("cols")}
+              value={String(cols)}
+              onChange={(e) => onChange({ cols: Number(e.target.value) })}
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
+            >
+              {colOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="mb-1.5 block text-xs font-black uppercase tracking-wider text-gray-500">
+              Item Spacing
+            </span>
+            <select
+              id={inputId("gap")}
+              value={gap}
+              onChange={(e) => onChange({ gap: e.target.value })}
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
+            >
+              {gapOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </EditorSection>
+
+      <EditorSection title="Card Aesthetic Chrome">
+        <SegmentedControl
+          id={inputId("cardVariant")}
+          label="Card Styling Variant"
+          value={cardVariant}
+          options={variantOptions}
+          onChange={(val) => onChange({ cardVariant: val })}
+        />
+
+        <label className="block">
+          <span className="mb-1.5 block text-xs font-black uppercase tracking-wider text-gray-500">
+            Card Corners Radius
+          </span>
+          <select
+            id={inputId("cardRadius")}
+            value={cardRadius}
+            onChange={(e) => onChange({ cardRadius: e.target.value })}
+            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
+          >
+            {radiusOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        {props.showBadge !== false && (
+          <SegmentedControl
+            id={inputId("badgeStyle")}
+            label="Badge Shape & Layout"
+            value={badgeStyle}
+            options={badgeStyleOptions}
+            onChange={(val) => onChange({ badgeStyle: val })}
+          />
+        )}
+      </EditorSection>
+
+      <EditorSection title="Card Features & Elements">
+        <div className="grid grid-cols-3 gap-2">
+          <div>
+            <span className="mb-1 block text-[10px] font-black uppercase tracking-wider text-gray-400">
+              Badges
+            </span>
+            <SegmentedControl
+              id={inputId("showBadge")}
+              label=""
+              value={props.showBadge !== false ? "yes" : "no"}
+              options={[
+                { label: "Show", value: "yes" },
+                { label: "Hide", value: "no" },
+              ]}
+              onChange={(val) => onChange({ showBadge: val === "yes" })}
+            />
+          </div>
+
+          <div>
+            <span className="mb-1 block text-[10px] font-black uppercase tracking-wider text-gray-400">
+              Rating
+            </span>
+            <SegmentedControl
+              id={inputId("showRating")}
+              label=""
+              value={props.showRating !== false ? "yes" : "no"}
+              options={[
+                { label: "Show", value: "yes" },
+                { label: "Hide", value: "no" },
+              ]}
+              onChange={(val) => onChange({ showRating: val === "yes" })}
+            />
+          </div>
+
+          <div>
+            <span className="mb-1 block text-[10px] font-black uppercase tracking-wider text-gray-400">
+              Add-To-Cart
+            </span>
+            <SegmentedControl
+              id={inputId("showAddToCart")}
+              label=""
+              value={props.showAddToCart !== false ? "yes" : "no"}
+              options={[
+                { label: "Show", value: "yes" },
+                { label: "Hide", value: "no" },
+              ]}
+              onChange={(val) => onChange({ showAddToCart: val === "yes" })}
+            />
+          </div>
+        </div>
+      </EditorSection>
+    </>
+  );
+}
+
 export function HeroBannerEditor({ section, props, onChange }: SectionEditorProps<StringPatch>) {
   const inputId = (field: string) => sectionInputId(section.id, field);
   return (
@@ -190,25 +503,20 @@ export function HeroBannerEditor({ section, props, onChange }: SectionEditorProp
       <EditorSection title="Content">
         <InputField id={inputId("title")} label="Title" value={props.title} onChange={(title) => onChange({ title })} />
         <InputField id={inputId("subtitle")} label="Subtitle" value={props.subtitle} onChange={(subtitle) => onChange({ subtitle })} />
+        <TextAreaField id={inputId("description")} label="Description" value={props.description} onChange={(description) => onChange({ description })} />
+        <InputField id={inputId("badgeText")} label="Badge Text" value={props.badgeText} placeholder="New Collection 2026" onChange={(badgeText) => onChange({ badgeText })} />
         <SegmentedControl id={inputId("textAlign")} label="Text Alignment" value={props.textAlign || "left"} options={alignOptions} onChange={(textAlign) => onChange({ textAlign })} />
-        <SegmentedControl 
-          id={inputId("themeVariant")} 
-          label="Theme Style" 
-          value={props.themeVariant || "default"} 
-          options={[
-            { label: "Default", value: "default" },
-            { label: "Eid", value: "eid" },
-            { label: "Puja", value: "puja" }
-          ]} 
-          onChange={(themeVariant) => onChange({ themeVariant })} 
-        />
+      </EditorSection>
+      <EditorSection title="Floating Offer Badge">
+        <InputField id={inputId("offerText")} label="Offer Headline" value={props.offerText} placeholder="Up to 40% OFF" onChange={(offerText) => onChange({ offerText })} />
+        <InputField id={inputId("offerSubtext")} label="Offer Subtext" value={props.offerSubtext} placeholder="Limited Time" onChange={(offerSubtext) => onChange({ offerSubtext })} />
       </EditorSection>
       <EditorSection title="Call To Action">
         <InputField id={inputId("ctaText")} label="Button Text" value={props.ctaText} onChange={(ctaText) => onChange({ ctaText })} />
         <InputField id={inputId("ctaHref")} label="Button Link" value={props.ctaHref} placeholder="/products" onChange={(ctaHref) => onChange({ ctaHref })} />
       </EditorSection>
       <EditorSection title="Media">
-        <MediaPickerField id={inputId("imageSrc")} label="Image URL" value={props.imageSrc} onChange={(imageSrc) => onChange({ imageSrc })} />
+        <MediaPickerField id={inputId("imageSrc")} label="Hero Image" value={props.imageSrc} onChange={(imageSrc) => onChange({ imageSrc })} />
       </EditorSection>
     </div>
   );
@@ -216,6 +524,16 @@ export function HeroBannerEditor({ section, props, onChange }: SectionEditorProp
 
 export function SpecialOffersEditor({ section, props, onChange }: SectionEditorProps<StringPatch>) {
   const inputId = (field: string) => sectionInputId(section.id, field);
+
+  const gradientOptions = [
+    { label: "Blue Indigo", value: "from-blue-600 via-blue-700 to-indigo-800" },
+    { label: "Emerald Teal", value: "from-emerald-600 via-teal-700 to-emerald-900" },
+    { label: "Rose Red", value: "from-rose-600 via-red-700 to-rose-900" },
+    { label: "Amber Gold", value: "from-amber-500 via-orange-600 to-red-700" },
+    { label: "Purple Violet", value: "from-purple-600 via-violet-700 to-indigo-900" },
+    { label: "Slate Dark", value: "from-slate-700 via-gray-800 to-slate-900" },
+  ];
+
   return (
     <div className="space-y-6">
       <EditorSection title="Content">
@@ -223,13 +541,30 @@ export function SpecialOffersEditor({ section, props, onChange }: SectionEditorP
         <InputField id={inputId("subtitle")} label="Subtitle" value={props.subtitle} onChange={(subtitle) => onChange({ subtitle })} />
         <SegmentedControl id={inputId("textAlign")} label="Text Alignment" value={props.textAlign || "center"} options={alignOptions} onChange={(textAlign) => onChange({ textAlign })} />
       </EditorSection>
+      <EditorSection title="Banner Style">
+        <label className="block">
+          <span className="mb-1.5 block text-xs font-black uppercase tracking-wider text-gray-500">
+            Gradient Color
+          </span>
+          <select
+            id={inputId("bgColor")}
+            value={String(props.bgColor || "from-blue-600 via-blue-700 to-indigo-800")}
+            onChange={(e) => onChange({ bgColor: e.target.value })}
+            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
+          >
+            {gradientOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </label>
+      </EditorSection>
       <EditorSection title="Call To Action">
         <InputField id={inputId("ctaText")} label="Button Text" value={props.ctaText} onChange={(ctaText) => onChange({ ctaText })} />
         <InputField id={inputId("ctaHref")} label="Button Link" value={props.ctaHref} onChange={(ctaHref) => onChange({ ctaHref })} />
       </EditorSection>
       <EditorSection title="Media">
-        <MediaPickerField id={inputId("leftImageSrc")} label="Left Image URL" value={props.leftImageSrc} onChange={(leftImageSrc) => onChange({ leftImageSrc })} />
-        <MediaPickerField id={inputId("rightImageSrc")} label="Right Image URL" value={props.rightImageSrc} onChange={(rightImageSrc) => onChange({ rightImageSrc })} />
+        <MediaPickerField id={inputId("leftImageSrc")} label="Left Image" value={props.leftImageSrc} onChange={(leftImageSrc) => onChange({ leftImageSrc })} />
+        <MediaPickerField id={inputId("rightImageSrc")} label="Right Image" value={props.rightImageSrc} onChange={(rightImageSrc) => onChange({ rightImageSrc })} />
       </EditorSection>
     </div>
   );
@@ -239,32 +574,12 @@ export function ProductShowcaseEditor({ section, props, categories, onChange }: 
   const inputId = (field: string) => sectionInputId(section.id, field);
   return (
     <div className="space-y-6">
-      <EditorSection title="Content">
+      <EditorSection title="Header Text">
         <InputField id={inputId("title")} label="Title" value={props.title} onChange={(title) => onChange({ title })} />
         <InputField id={inputId("subtitle")} label="Subtitle" value={props.subtitle} onChange={(subtitle) => onChange({ subtitle })} />
         <SegmentedControl id={inputId("textAlign")} label="Header Alignment" value={props.textAlign || "left"} options={alignOptions} onChange={(textAlign) => onChange({ textAlign })} />
       </EditorSection>
-      <EditorSection title="Data Source">
-        <label className="block">
-          <span className="mb-1.5 block text-xs font-black uppercase tracking-wider text-gray-500">
-            Category
-          </span>
-          <select
-            id={inputId("showcaseCategoryId")}
-            data-builder-input
-            value={String(props.showcaseCategoryId || "all")}
-            onChange={(event) => onChange({ showcaseCategoryId: event.target.value })}
-            className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
-          >
-            <option value="all">All Products</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </label>
-      </EditorSection>
+      <ProductEditorFields section={section} props={props} categories={categories} onChange={onChange} />
     </div>
   );
 }
@@ -458,97 +773,80 @@ export function TestimonialEditor({ section, props, onChange }: SectionEditorPro
   );
 }
 
-export function HotDealsEditor({ section, props, onChange }: SectionEditorProps<{ title?: string; subtitle?: string; deals?: any[] }>) {
-  const deals = props.deals || [];
+export function HotDealsEditor({ section, props, categories, onChange }: SectionEditorProps<any>) {
   const inputId = (field: string) => sectionInputId(section.id, field);
-
-  const updateDeal = (index: number, patch: any) => {
-    const updated = [...deals];
-    updated[index] = { ...updated[index], ...patch };
-    onChange({ deals: updated });
-  };
-
   return (
     <div className="space-y-6">
-      <EditorSection title="Header">
+      <EditorSection title="Header Text">
         <InputField id={inputId("title")} label="Title" value={props.title} onChange={(title) => onChange({ title })} />
         <InputField id={inputId("subtitle")} label="Subtitle" value={props.subtitle} onChange={(subtitle) => onChange({ subtitle })} />
       </EditorSection>
-
-      <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-        Deal Cards (Exactly 4 Hot Deals)
-      </div>
-      {Array.from({ length: 4 }).map((_, index) => {
-        const item = deals[index] || { name: "", originalPrice: "", salePrice: "", discount: "", image: "", endsIn: "" };
-        const itemId = (field: string) => sectionInputId(section.id, `deal_${index}_${field}`);
-
-        return (
-          <div key={index} className="p-4 border border-gray-200 rounded-xl bg-gray-50/50 space-y-4">
-            <div className="text-xs font-black text-emerald-600 uppercase tracking-wide">
-              Hot Deal Card #{index + 1}
-            </div>
-            <InputField
-              id={itemId("name")}
-              label="Product Name"
-              value={item.name}
-              onChange={(name) => updateDeal(index, { name })}
-            />
-            <MediaPickerField
-              id={itemId("image")}
-              label="Product Image"
-              value={item.image}
-              onChange={(image) => updateDeal(index, { image })}
-            />
-            <div className="grid grid-cols-2 gap-4">
-              <InputField
-                id={itemId("salePrice")}
-                label="Sale Price (e.g. ৳999)"
-                value={item.salePrice}
-                onChange={(salePrice) => updateDeal(index, { salePrice })}
-              />
-              <InputField
-                id={itemId("originalPrice")}
-                label="Original Price (e.g. ৳1,800)"
-                value={item.originalPrice}
-                onChange={(originalPrice) => updateDeal(index, { originalPrice })}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <InputField
-                id={itemId("discount")}
-                label="Discount Text (e.g. 45% OFF)"
-                value={item.discount}
-                onChange={(discount) => updateDeal(index, { discount })}
-              />
-              <InputField
-                id={itemId("endsIn")}
-                label="Ends In Timer (e.g. 2d 14h)"
-                value={item.endsIn}
-                onChange={(endsIn) => updateDeal(index, { endsIn })}
-              />
-            </div>
-          </div>
-        );
-      })}
+      <ProductEditorFields section={section} props={props} categories={categories} onChange={onChange} />
     </div>
   );
 }
 
-export function ConsultationEditor({ section, props, onChange }: SectionEditorProps<StringPatch>) {
+export function ConsultationEditor({ section, props, onChange }: SectionEditorProps<{ title?: string; subtitle?: string; badgeText?: string; features?: string[]; ctaText?: string; ctaHref?: string; imageSrc?: string; imageAlign?: string }>) {
   const inputId = (field: string) => sectionInputId(section.id, field);
+  const features = (props.features as string[] | undefined) || ["Personalized skin analysis", "Custom routine recommendations", "Expert product matching"];
+
+  const updateFeature = (index: number, value: string) => {
+    const updated = [...features];
+    updated[index] = value;
+    onChange({ features: updated } as any);
+  };
+
+  const addFeature = () => {
+    onChange({ features: [...features, "New feature"] } as any);
+  };
+
+  const removeFeature = (index: number) => {
+    const updated = features.filter((_, i) => i !== index);
+    onChange({ features: updated } as any);
+  };
+
   return (
     <div className="space-y-6">
       <EditorSection title="Content">
-        <InputField id={inputId("title")} label="Title" value={props.title} onChange={(title) => onChange({ title })} />
-        <InputField id={inputId("subtitle")} label="Subtitle" value={props.subtitle} onChange={(subtitle) => onChange({ subtitle })} />
+        <InputField id={inputId("title")} label="Title" value={props.title} onChange={(title) => onChange({ title } as any)} />
+        <InputField id={inputId("subtitle")} label="Subtitle" value={props.subtitle} onChange={(subtitle) => onChange({ subtitle } as any)} />
+        <InputField id={inputId("badgeText")} label="Badge Text" value={props.badgeText} placeholder="Expert Advice" onChange={(badgeText) => onChange({ badgeText } as any)} />
+      </EditorSection>
+      <EditorSection title="Feature Bullet Points">
+        {features.map((feature, index) => (
+          <div key={index} className="flex items-center gap-2">
+            <div className="flex-1">
+              <InputField
+                id={inputId(`feature_${index}`)}
+                label={`Bullet #${index + 1}`}
+                value={feature}
+                onChange={(value) => updateFeature(index, value)}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => removeFeature(index)}
+              className="mt-5 text-xs font-bold text-rose-600 hover:text-rose-700 px-2 py-2 transition shrink-0"
+            >
+              Remove
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={addFeature}
+          className="w-full rounded-lg border border-dashed border-gray-300 bg-gray-50 py-2.5 text-xs font-bold text-gray-500 hover:bg-gray-100 transition"
+        >
+          + Add Bullet Point
+        </button>
       </EditorSection>
       <EditorSection title="Call To Action">
-        <InputField id={inputId("ctaText")} label="Button Text" value={props.ctaText} onChange={(ctaText) => onChange({ ctaText })} />
-        <InputField id={inputId("ctaHref")} label="Button Link" value={props.ctaHref} onChange={(ctaHref) => onChange({ ctaHref })} />
+        <InputField id={inputId("ctaText")} label="Button Text" value={props.ctaText} onChange={(ctaText) => onChange({ ctaText } as any)} />
+        <InputField id={inputId("ctaHref")} label="Button Link" value={props.ctaHref} onChange={(ctaHref) => onChange({ ctaHref } as any)} />
       </EditorSection>
       <EditorSection title="Media">
-        <MediaPickerField id={inputId("imageSrc")} label="Image URL" value={props.imageSrc} onChange={(imageSrc) => onChange({ imageSrc })} />
-        <SegmentedControl id={inputId("imageAlign")} label="Layout" value={props.imageAlign || "right"} options={imageAlignOptions} onChange={(imageAlign) => onChange({ imageAlign })} />
+        <MediaPickerField id={inputId("imageSrc")} label="Banner Image" value={props.imageSrc} onChange={(imageSrc) => onChange({ imageSrc } as any)} />
+        <SegmentedControl id={inputId("imageAlign")} label="Layout" value={props.imageAlign || "right"} options={imageAlignOptions} onChange={(imageAlign) => onChange({ imageAlign } as any)} />
       </EditorSection>
     </div>
   );
@@ -575,13 +873,16 @@ export function RoutineEditor({ section, props, onChange }: SectionEditorProps<S
   );
 }
 
-export function NewArrivalsEditor({ section, props, onChange }: SectionEditorProps<StringPatch>) {
+export function NewArrivalsEditor({ section, props, categories, onChange }: SectionEditorProps<any>) {
   const inputId = (field: string) => sectionInputId(section.id, field);
   return (
-    <div className="space-y-4">
-      <InputField id={inputId("title")} label="Title" value={props.title} onChange={(title) => onChange({ title })} />
-      <InputField id={inputId("subtitle")} label="Subtitle" value={props.subtitle} onChange={(subtitle) => onChange({ subtitle })} />
-      <InputField id={inputId("ctaHref")} label="View All Link" value={props.ctaHref} onChange={(ctaHref) => onChange({ ctaHref })} />
+    <div className="space-y-6">
+      <EditorSection title="Header Text">
+        <InputField id={inputId("title")} label="Title" value={props.title} onChange={(title) => onChange({ title })} />
+        <InputField id={inputId("subtitle")} label="Subtitle" value={props.subtitle} onChange={(subtitle) => onChange({ subtitle })} />
+        <InputField id={inputId("ctaHref")} label="View All Link" value={props.ctaHref} onChange={(ctaHref) => onChange({ ctaHref })} />
+      </EditorSection>
+      <ProductEditorFields section={section} props={props} categories={categories} onChange={onChange} />
     </div>
   );
 }

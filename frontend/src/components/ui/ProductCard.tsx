@@ -3,7 +3,7 @@ import { API_URL } from "@/lib/config";
 
 import Link from "next/link";
 import { useCartStore } from "@/store/cartStore";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { getActivePrice } from "@/lib/utils";
@@ -87,10 +87,22 @@ function isNewProduct(product: any): boolean {
 
 export default function ProductCard({ 
   product, 
-  prefetch = true 
+  prefetch = true,
+  variant = "classic",
+  radius = "3xl",
+  showBadge = true,
+  showRating = true,
+  showAddToCart = true,
+  badgeStyle = "pill",
 }: { 
-  product: any, 
-  prefetch?: boolean 
+  product: any;
+  prefetch?: boolean;
+  variant?: "classic" | "sleek" | "minimal";
+  radius?: "none" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "full";
+  showBadge?: boolean;
+  showRating?: boolean;
+  showAddToCart?: boolean;
+  badgeStyle?: "pill" | "corner" | "ribbon";
 }) {
   const addToCart = useCartStore((state) => state.addToCart);
   const [added, setAdded] = useState(false);
@@ -118,6 +130,101 @@ export default function ProductCard({
     setTimeout(() => setAdded(false), 1500);
   };
 
+  // Radius Class Mappings
+  const radiusClasses = {
+    none: "rounded-none",
+    sm: "rounded-sm",
+    md: "rounded-md",
+    lg: "rounded-lg",
+    xl: "rounded-xl",
+    "2xl": "rounded-2xl",
+    "3xl": "rounded-3xl",
+    full: "rounded-[2rem]",
+  };
+  const cardRadiusClass = radiusClasses[radius] || "rounded-3xl";
+
+  const imageRadiusClasses = {
+    none: "rounded-none",
+    sm: "rounded-t-sm",
+    md: "rounded-t-md",
+    lg: "rounded-t-lg",
+    xl: "rounded-t-xl",
+    "2xl": "rounded-t-2xl",
+    "3xl": "rounded-t-3xl",
+    full: "rounded-t-[2rem]",
+  };
+  const imageRadiusClass = imageRadiusClasses[radius] || "rounded-t-3xl";
+
+  // Badges Renderer
+  const renderBadges = () => {
+    if (!showBadge) return null;
+    if (badgeStyle === "ribbon") {
+      const hasDiscount = discountPercent > 0;
+      if (!hasDiscount && !showNewBadge) return null;
+      return (
+        <div className="absolute top-0 left-0 z-10 w-16 h-16 overflow-hidden pointer-events-none">
+          <div className={`absolute top-[12px] left-[-22px] w-[80px] text-center text-white text-[8px] font-black uppercase py-0.5 leading-none shadow-sm -rotate-45 ${hasDiscount ? "bg-rose-500" : "bg-emerald-500"}`}>
+            {hasDiscount ? `-${discountPercent}%` : "NEW"}
+          </div>
+        </div>
+      );
+    }
+    if (badgeStyle === "corner") {
+      return (
+        <div className="absolute top-0 left-0 z-10 flex flex-col gap-0">
+          {showNewBadge && (
+            <span className="bg-emerald-500 text-white text-[9px] font-black px-2 py-1 uppercase leading-none rounded-br-md shadow-sm">
+              NEW
+            </span>
+          )}
+          {discountPercent > 0 && (
+            <span className="bg-rose-500 text-white text-[9px] font-black px-2 py-1 uppercase leading-none rounded-br-md shadow-sm">
+              -{discountPercent}%
+            </span>
+          )}
+        </div>
+      );
+    }
+    // Default: pill
+    return (
+      <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
+        {showNewBadge && (
+          <span className="bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full leading-tight shadow">
+            NEW
+          </span>
+        )}
+        {discountPercent > 0 && (
+          <span className="bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full leading-tight shadow">
+            -{discountPercent}%
+          </span>
+        )}
+      </div>
+    );
+  };
+
+  // Rating Stars Renderer
+  const renderRatingStars = () => {
+    if (!showRating) return null;
+    const ratingValue = product.averageRating != null ? Number(product.averageRating) : 5.0;
+    return (
+      <div className="flex items-center gap-0.5 mt-0.5" title={`${ratingValue} out of 5 stars`}>
+        {Array.from({ length: 5 }).map((_, i) => {
+          const isFilled = i < Math.round(ratingValue);
+          return (
+            <Star
+              key={i}
+              size={12}
+              className={isFilled ? "fill-amber-400 text-amber-400" : "text-gray-300 dark:text-gray-600"}
+            />
+          );
+        })}
+        <span className="text-[10px] text-gray-500 dark:text-gray-400 ml-1 font-semibold">
+          {ratingValue.toFixed(1)}
+        </span>
+      </div>
+    );
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.94, y: 40 }}
@@ -134,35 +241,31 @@ export default function ProductCard({
         mass: 1,
         duration: 0.8
       }}
-      className="group"
+      className="group h-full"
     >
-      <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 overflow-hidden flex flex-col h-full relative">
-        {/* Subtitle shimmer/glass effect on hover */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/0 via-emerald-500/0 to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+      <div className={`transition-all duration-500 overflow-hidden flex flex-col h-full relative ${cardRadiusClass} ${
+        variant === "classic"
+          ? "bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-2xl hover:-translate-y-2"
+          : variant === "sleek"
+          ? "bg-gradient-to-b from-white/95 to-gray-50/95 dark:from-gray-900/95 dark:to-gray-950/95 shadow-md hover:shadow-2xl hover:-translate-y-1 hover:scale-[1.01] border-0"
+          : "bg-transparent border-0 shadow-none hover:opacity-95"
+      }`}>
+        {/* Shimmer/glass hover effect */}
+        {variant !== "minimal" && (
+          <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/0 via-emerald-500/0 to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+        )}
 
         {/* Image area */}
         <Link 
           href={productUrl} 
           prefetch={prefetch}
-          className="relative block bg-gray-50 dark:bg-gray-800 overflow-hidden"
+          className={`relative block overflow-hidden ${variant === "classic" ? `bg-gray-50 dark:bg-gray-800 ${imageRadiusClass}` : "bg-transparent"}`}
         >
-          
-          {/* Top-left badges */}
-          <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
-            {showNewBadge && (
-              <span className="bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full leading-tight shadow">
-                NEW
-              </span>
-            )}
-            {discountPercent > 0 && (
-              <span className="bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full leading-tight shadow">
-                -{discountPercent}%
-              </span>
-            )}
-          </div>
+          {/* Render Badges */}
+          {renderBadges()}
 
-          {/* Add to Cart icon — top-right, visible on hover (SIMPLE products only) */}
-          {product.productType !== "VARIABLE" && (
+          {/* Add to Cart floating icon (Classic variant, simple products only) */}
+          {variant === "classic" && showAddToCart && product.productType !== "VARIABLE" && (
             <button
               type="button"
               onClick={handleAddToCart}
@@ -177,8 +280,8 @@ export default function ProductCard({
             </button>
           )}
 
-          {/* Product image */}
-          <div className="aspect-square w-full overflow-hidden">
+          {/* Product image wrapper */}
+          <div className={`aspect-square w-full overflow-hidden ${variant === "minimal" ? "bg-gray-50 dark:bg-gray-800 rounded-2xl" : ""}`}>
             <img
               src={imageSrc}
               alt={product.name}
@@ -189,15 +292,14 @@ export default function ProductCard({
           </div>
         </Link>
 
-        {/* Body */}
-        <div className="flex flex-col flex-1 p-3 gap-1.5">
-
+        {/* Body content */}
+        <div className={`flex flex-col flex-1 gap-1.5 ${variant === "minimal" ? "pt-3 px-1 pb-1" : "p-3"}`}>
           {/* Category */}
-          {product.categories?.[0]?.name || product.category?.name ? (
+          {(product.categories?.[0]?.name || product.category?.name) && (
             <span className="text-[11px] text-emerald-600 font-semibold uppercase tracking-wide truncate">
               {product.categories?.[0]?.name ?? product.category?.name}
             </span>
-          ) : null}
+          )}
 
           {/* Name */}
           <Link href={productUrl} prefetch={prefetch}>
@@ -205,6 +307,9 @@ export default function ProductCard({
               {product.name}
             </h3>
           </Link>
+
+          {/* Rating */}
+          {renderRatingStars()}
 
           {/* Spacer */}
           <div className="flex-1" />
@@ -220,6 +325,36 @@ export default function ProductCard({
               </span>
             )}
           </div>
+
+          {/* Sleek Variant Add to Cart Button */}
+          {variant === "sleek" && showAddToCart && product.productType !== "VARIABLE" && (
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              className={`w-full py-2 px-3 rounded-xl flex items-center justify-center gap-2 text-xs font-bold transition-all mt-2 active:scale-95
+                ${added
+                  ? "bg-emerald-500 text-white"
+                  : "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white"
+                }`}
+            >
+              <ShoppingCart size={13} /> {added ? "Added!" : "Add to Cart"}
+            </button>
+          )}
+
+          {/* Minimal Variant Add to Cart Button */}
+          {variant === "minimal" && showAddToCart && product.productType !== "VARIABLE" && (
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              className={`w-full py-1.5 text-xs font-bold text-center border border-gray-100 dark:border-gray-800 rounded-lg hover:border-emerald-500 hover:text-emerald-500 transition-colors mt-2 active:scale-95
+                ${added
+                  ? "text-emerald-500 border-emerald-500 bg-emerald-50/30 dark:bg-emerald-950/10"
+                  : "text-gray-500 dark:text-gray-400"
+                }`}
+            >
+              {added ? "✓ Added" : "+ Add to Cart"}
+            </button>
+          )}
         </div>
       </div>
     </motion.div>

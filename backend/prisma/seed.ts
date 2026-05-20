@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { createDefaultHomeDocument } from '../src/modules/builder/schema';
 
 const prisma = new PrismaClient();
 
@@ -481,6 +482,113 @@ async function main() {
     }
   }
   console.log('✅ Builder components and contents seeded');
+
+  // --- Seed Builder Templates ---
+  const defaultHomeDoc = createDefaultHomeDocument();
+  await prisma.builderTemplate.upsert({
+    where: { key: 'default-home' },
+    update: {},
+    create: {
+      key: 'default-home',
+      name: 'Default Home Layout',
+      scope: 'page',
+      pageType: 'home',
+      isSystem: true,
+      document: JSON.parse(JSON.stringify(defaultHomeDoc)),
+    },
+  });
+
+  function createFestivalHomeDocument(festival: string) {
+    const nameMap: Record<string, string> = {
+      ramadan: "Ramadan Special",
+      eid: "Eid Celebration",
+      puja: "Durga Puja Festive",
+      boishakh: "Pohela Boishakh",
+      blackfriday: "Black Friday Mega Deals",
+      christmas: "Merry Christmas Holiday",
+    };
+    const title = nameMap[festival] || festival;
+
+    return {
+      schemaVersion: 1,
+      page: { key: 'home', slug: '/', title: `Home - ${title}` },
+      sections: [
+        {
+          id: `hero_${festival}`,
+          type: 'HeroBanner',
+          variant: festival,
+          props: {},
+        },
+        {
+          id: `promo_badges_${festival}`,
+          type: 'PromoBadgeGrid',
+          variant: festival,
+          props: {},
+        },
+        {
+          id: `special_offers_${festival}`,
+          type: 'SpecialOffersBanner',
+          variant: festival,
+          props: {},
+        },
+        {
+          id: `product_showcase_${festival}`,
+          type: 'ProductShowcase',
+          variant: 'default',
+          props: {
+            title: `${title} Showcase`,
+            subtitle: 'Our recommended organic essentials for this festive season',
+            showcaseCategoryId: 'all',
+            textAlign: 'center',
+          },
+        },
+        {
+          id: `consultation_${festival}`,
+          type: 'ConsultationBanner',
+          variant: festival,
+          props: {},
+        },
+        {
+          id: `routine_${festival}`,
+          type: 'RoutineBanner',
+          variant: festival,
+          props: {},
+        },
+        {
+          id: `testimonials_${festival}`,
+          type: 'TestimonialSection',
+          variant: festival,
+          props: {},
+        },
+      ],
+    };
+  }
+
+  const festivals = ['ramadan', 'eid', 'puja', 'boishakh', 'blackfriday', 'christmas'];
+  for (const festival of festivals) {
+    const festivalDoc = createFestivalHomeDocument(festival);
+    await prisma.builderTemplate.upsert({
+      where: { key: `${festival}-home` },
+      update: {
+        name: `${festival.charAt(0).toUpperCase() + festival.slice(1)} Special Home`,
+        scope: 'theme',
+        pageType: 'home',
+        themeKey: festival,
+        isSystem: true,
+        document: JSON.parse(JSON.stringify(festivalDoc)),
+      },
+      create: {
+        key: `${festival}-home`,
+        name: `${festival.charAt(0).toUpperCase() + festival.slice(1)} Special Home`,
+        scope: 'theme',
+        pageType: 'home',
+        themeKey: festival,
+        isSystem: true,
+        document: JSON.parse(JSON.stringify(festivalDoc)),
+      },
+    });
+  }
+  console.log('✅ Builder templates seeded');
 
   console.log('\n🎉 Database seeded successfully!');
 }

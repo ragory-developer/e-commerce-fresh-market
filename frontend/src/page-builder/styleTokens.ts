@@ -29,6 +29,15 @@ export const containerMap: Record<NonNullable<BuilderSectionStyles["container"]>
   narrow: "mx-auto w-full max-w-3xl px-4 sm:px-6",
 };
 
+export const borderRadiusMap: Record<NonNullable<BuilderSectionStyles["borderRadius"]>, string> = {
+  none: "rounded-none",
+  sm: "rounded-sm",
+  md: "rounded-md",
+  lg: "rounded-lg",
+  xl: "rounded-xl",
+  full: "rounded-full",
+};
+
 export function resolveStyleClasses(styles?: BuilderSectionStyles): string {
   if (!styles) return "";
   
@@ -45,6 +54,9 @@ export function resolveStyleClasses(styles?: BuilderSectionStyles): string {
   }
   if (styles.container && containerMap[styles.container]) {
     classes.push(containerMap[styles.container]);
+  }
+  if (styles.borderRadius && borderRadiusMap[styles.borderRadius]) {
+    classes.push(borderRadiusMap[styles.borderRadius]);
   }
   
   return classes.join(" ");

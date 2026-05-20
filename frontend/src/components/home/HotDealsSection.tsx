@@ -1,30 +1,77 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { motion } from "framer-motion";
-import { Clock, Flame, ArrowRight } from "lucide-react";
-
-interface HotDeal {
-  name: string;
-  originalPrice: string;
-  salePrice: string;
-  discount: string;
-  image: string;
-  endsIn?: string;
-}
+import { Flame, ArrowRight } from "lucide-react";
+import useEmblaCarousel from "embla-carousel-react";
+import ProductCard from "@/components/ui/ProductCard";
 
 interface HotDealsSectionProps {
   title?: string;
   subtitle?: string;
-  deals?: HotDeal[];
+  products?: any[];
+  
+  // Custom query/chrome props
+  cols?: number;
+  gap?: "sm" | "md" | "lg";
+  cardVariant?: "classic" | "sleek" | "minimal";
+  cardRadius?: "none" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "full";
+  showBadge?: boolean;
+  showRating?: boolean;
+  showAddToCart?: boolean;
+  badgeStyle?: "pill" | "corner" | "ribbon";
+  layoutType?: "grid" | "carousel";
 }
 
 export default function HotDealsSection({
   title = "Hot Deals",
   subtitle = "Grab them before they're gone!",
-  deals = [],
+  products = [],
+  
+  cols = 4,
+  gap = "md",
+  cardVariant = "classic",
+  cardRadius = "2xl",
+  showBadge = true,
+  showRating = true,
+  showAddToCart = true,
+  badgeStyle = "pill",
+  layoutType = "grid",
 }: HotDealsSectionProps) {
+  const [emblaRef] = useEmblaCarousel({
+    align: "start",
+    containScroll: "trimSnaps",
+    dragFree: true,
+  });
+
+  // Gap size mappings
+  const gapClasses = {
+    sm: "gap-3 lg:gap-4",
+    md: "gap-4 lg:gap-6",
+    lg: "gap-6 lg:gap-8",
+  };
+  const gapClass = gapClasses[gap] || "gap-4 lg:gap-6";
+
+  // Grid columns mappings
+  const gridColsClass: Record<number, string> = {
+    3: "grid-cols-2 md:grid-cols-3 lg:grid-cols-3",
+    4: "grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
+    5: "grid-cols-2 md:grid-cols-3 lg:grid-cols-5",
+    6: "grid-cols-2 md:grid-cols-4 lg:grid-cols-6",
+  };
+  const colsClass = gridColsClass[cols] || "grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
+
+  // Carousel Slide Width Mappings
+  const slideWidths: Record<number, string> = {
+    3: "lg:flex-[0_0_calc(33.333%-1rem)]",
+    4: "lg:flex-[0_0_calc(25%-1rem)]",
+    5: "lg:flex-[0_0_calc(20%-1rem)]",
+    6: "lg:flex-[0_0_calc(16.666%-1rem)]",
+  };
+  const slideWidthClass = slideWidths[cols] || "lg:flex-[0_0_calc(25%-1rem)]";
+
+  const hasProducts = products && products.length > 0;
+
   return (
     <section className="py-12 lg:py-20 bg-gradient-to-b from-white to-gray-50 dark:from-gray-950 dark:to-gray-900">
       <div className="container mx-auto px-4">
@@ -37,7 +84,7 @@ export default function HotDealsSection({
             transition={{ duration: 0.5 }}
           >
             <div className="flex items-center gap-2 mb-2">
-              <Flame size={24} className="text-red-500" />
+              <Flame size={24} className="text-red-500 animate-pulse" />
               <h2 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white">
                 {title}
               </h2>
@@ -54,59 +101,48 @@ export default function HotDealsSection({
           </Link>
         </div>
 
-        {/* Deal Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-          {deals.map((deal, idx) => (
-            <motion.div
-              key={idx}
-              initial={false}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: idx * 0.1 }}
-            >
-              <Link
-                href="/products"
-                className="group block bg-white dark:bg-gray-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:border-red-200 dark:hover:border-red-900/50 transition-all"
-              >
-                {/* Image */}
-                <div className="aspect-square relative overflow-hidden">
-                  <Image
-                    src={deal.image}
-                    alt={deal.name}
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-500"
-                    unoptimized
+        {/* Dynamic Content */}
+        {!hasProducts ? (
+          <div className="text-center py-16 text-gray-400 dark:text-gray-500 font-medium">
+            No active deals found.
+          </div>
+        ) : layoutType === "carousel" ? (
+          <div className="overflow-hidden cursor-grab active:cursor-grabbing" ref={emblaRef}>
+            <div className={`flex ${gapClass}`}>
+              {products.map((product) => (
+                <div
+                  key={product.id}
+                  className={`flex-[0_0_calc(50%-0.5rem)] md:flex-[0_0_calc(33.333%-0.75rem)] ${slideWidthClass} min-w-0 h-auto`}
+                >
+                  <ProductCard
+                    product={product}
+                    variant={cardVariant}
+                    radius={cardRadius}
+                    showBadge={showBadge}
+                    showRating={showRating}
+                    showAddToCart={showAddToCart}
+                    badgeStyle={badgeStyle}
                   />
-                  {/* Discount badge */}
-                  <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-black px-3 py-1.5 rounded-full shadow-lg">
-                    {deal.discount}
-                  </span>
-                  {/* Timer */}
-                  {deal.endsIn && (
-                    <span className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1">
-                      <Clock size={12} /> {deal.endsIn}
-                    </span>
-                  )}
                 </div>
-
-                {/* Info */}
-                <div className="p-4">
-                  <h3 className="font-bold text-gray-900 dark:text-white text-sm mb-2 line-clamp-1 group-hover:text-red-500 transition-colors">
-                    {deal.name}
-                  </h3>
-                  <div className="flex items-center gap-2">
-                    <span className="text-red-500 font-extrabold text-lg">
-                      {deal.salePrice}
-                    </span>
-                    <span className="text-gray-400 line-through text-sm">
-                      {deal.originalPrice}
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className={`grid ${colsClass} ${gapClass}`}>
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                variant={cardVariant}
+                radius={cardRadius}
+                showBadge={showBadge}
+                showRating={showRating}
+                showAddToCart={showAddToCart}
+                badgeStyle={badgeStyle}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

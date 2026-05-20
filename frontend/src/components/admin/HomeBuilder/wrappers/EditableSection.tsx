@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { GripVertical, Trash2 } from "lucide-react";
+import { GripVertical, Trash2, FolderHeart } from "lucide-react";
 import { useSortable } from "@dnd-kit/react/sortable";
 
 interface EditableSectionProps {
@@ -12,6 +12,7 @@ interface EditableSectionProps {
   isEditing: boolean;
   onClick: (sectionId: string) => void;
   onDelete?: (sectionId: string) => void;
+  onSaveBlock?: (sectionId: string) => void;
   children: React.ReactNode;
 }
 
@@ -23,6 +24,7 @@ export default function EditableSection({
   isEditing,
   onClick,
   onDelete,
+  onSaveBlock,
   children
 }: EditableSectionProps) {
   const { isDragging, ref, handleRef } = useSortable({ id: sectionId, index, plugins: [] });
@@ -101,6 +103,26 @@ export default function EditableSection({
           <GripVertical size={13} className="shrink-0 text-white/80 animate-pulse" />
           <span className="truncate">{isDragging ? `Sorting ${name}` : name}</span>
         </div>
+
+        {/* Save as Reusable Block Button */}
+        {onSaveBlock && (
+          <>
+            <div className="h-3 w-px shrink-0 bg-white/20" />
+            <button
+              type="button"
+              onPointerDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSaveBlock(sectionId);
+              }}
+              className="p-1 rounded hover:bg-white/20 active:scale-90 transition flex items-center justify-center text-white/90 hover:text-white"
+              title="Save as Reusable Block"
+            >
+              <FolderHeart size={13} />
+            </button>
+          </>
+        )}
 
         {/* Divider & Remove Button */}
         {onDelete && (

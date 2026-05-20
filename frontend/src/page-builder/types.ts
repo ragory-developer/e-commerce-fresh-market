@@ -27,11 +27,20 @@ export interface BuilderSectionStyles {
   customTextColor?: string;
   customPadding?: string;
   customAlignment?: "left" | "center" | "right";
+  bgColor?: string;
+  bgGradient?: string;
+  bgImage?: string;
+  bgOverlay?: number;
+  textColor?: string;
+  borderRadius?: "none" | "sm" | "md" | "lg" | "xl" | "full";
+  paddingX?: number;
+  paddingY?: number;
 }
 
 export interface BuilderSection {
   id: string;
   type: string;
+  variant?: string;
   props: Record<string, unknown>;
   styles?: BuilderSectionStyles;
   settings?: {
@@ -52,15 +61,25 @@ export interface SectionRenderContext {
   dbComponents?: any[];
 }
 
+export interface VariantDef {
+  label: string;
+  thumbnail?: string;
+  defaultProps: Record<string, unknown>;
+  Renderer: ComponentType<any>;
+}
+
 export interface SectionDefinition<TProps extends Record<string, unknown> = Record<string, unknown>> {
   type: string;
   label: string;
   description?: string;
-  category: "Hero" | "Commerce" | "Marketing" | "Content";
-  defaultProps: TProps;
-  Renderer: ComponentType<Record<string, unknown>>;
+  category: "Hero" | "Commerce" | "Marketing" | "Content" | "Layout";
+  contentKind: "static" | "dynamic" | "hybrid";
+  dynamicFields?: string[];
+  variants: Record<string, VariantDef>;
+  defaultVariant: string;
   Editor?: ComponentType<SectionEditorProps<TProps>>;
-  resolveProps?: (props: TProps, context: SectionRenderContext) => Record<string, unknown>;
+  resolveProps?: (props: any, context: SectionRenderContext) => Record<string, unknown>;
+  deprecated?: boolean;
 }
 
 export interface BuilderPageVersion {
@@ -70,4 +89,5 @@ export interface BuilderPageVersion {
   document: BuilderPageDocument;
   publishedAt?: string | null;
   createdAt: string;
+  createdById?: string | null;
 }

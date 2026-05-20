@@ -1,60 +1,83 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
-
-interface NewArrival {
-  name: string;
-  price: string;
-  image: string;
-  badge?: string;
-}
+import useEmblaCarousel from "embla-carousel-react";
+import ProductCard from "@/components/ui/ProductCard";
 
 interface NewArrivalsSectionProps {
   title?: string;
   subtitle?: string;
-  items?: NewArrival[];
+  products?: any[];
   ctaHref?: string;
-}
 
-const defaultItems: NewArrival[] = [
-  {
-    name: "Retinol Night Cream",
-    price: "৳2,450",
-    image: "https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?auto=format&fit=crop&w=400&q=80",
-    badge: "New",
-  },
-  {
-    name: "Hyaluronic Acid Serum",
-    price: "৳1,890",
-    image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=400&q=80",
-    badge: "Trending",
-  },
-  {
-    name: "Vitamin E Oil",
-    price: "৳990",
-    image: "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    name: "Collagen Face Mask",
-    price: "৳750",
-    image: "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?auto=format&fit=crop&w=400&q=80",
-    badge: "Hot",
-  },
-];
+  // Custom query/chrome props
+  cols?: number;
+  gap?: "sm" | "md" | "lg";
+  cardVariant?: "classic" | "sleek" | "minimal";
+  cardRadius?: "none" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "full";
+  showBadge?: boolean;
+  showRating?: boolean;
+  showAddToCart?: boolean;
+  badgeStyle?: "pill" | "corner" | "ribbon";
+  layoutType?: "grid" | "carousel";
+}
 
 export default function NewArrivalsSection({
   title = "Just Dropped",
   subtitle = "NEW ARRIVALS",
-  items = defaultItems,
+  products = [],
   ctaHref = "/products?sort=newest",
+
+  cols = 4,
+  gap = "md",
+  cardVariant = "classic",
+  cardRadius = "2xl",
+  showBadge = true,
+  showRating = true,
+  showAddToCart = true,
+  badgeStyle = "pill",
+  layoutType = "grid",
 }: NewArrivalsSectionProps) {
+  const [emblaRef] = useEmblaCarousel({
+    align: "start",
+    containScroll: "trimSnaps",
+    dragFree: true,
+  });
+
+  // Gap size mappings
+  const gapClasses = {
+    sm: "gap-3 lg:gap-4",
+    md: "gap-4 lg:gap-6",
+    lg: "gap-6 lg:gap-8",
+  };
+  const gapClass = gapClasses[gap] || "gap-4 lg:gap-6";
+
+  // Grid columns mappings
+  const gridColsClass: Record<number, string> = {
+    3: "grid-cols-2 md:grid-cols-3 lg:grid-cols-3",
+    4: "grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
+    5: "grid-cols-2 md:grid-cols-3 lg:grid-cols-5",
+    6: "grid-cols-2 md:grid-cols-4 lg:grid-cols-6",
+  };
+  const colsClass = gridColsClass[cols] || "grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
+
+  // Carousel Slide Width Mappings
+  const slideWidths: Record<number, string> = {
+    3: "lg:flex-[0_0_calc(33.333%-1rem)]",
+    4: "lg:flex-[0_0_calc(25%-1rem)]",
+    5: "lg:flex-[0_0_calc(20%-1rem)]",
+    6: "lg:flex-[0_0_calc(16.666%-1rem)]",
+  };
+  const slideWidthClass = slideWidths[cols] || "lg:flex-[0_0_calc(25%-1rem)]";
+
+  const hasProducts = products && products.length > 0;
+
   return (
     <section className="py-12 lg:py-20 bg-gray-900 text-white relative overflow-hidden">
       {/* Background decoration */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl" />
       </div>
@@ -71,8 +94,8 @@ export default function NewArrivalsSection({
             <span className="text-emerald-400 font-bold text-sm uppercase tracking-widest mb-2 block">
               {subtitle}
             </span>
-            <h2 className="text-3xl lg:text-5xl font-black leading-tight">
-              {title}
+            <h2 className="text-3xl lg:text-5xl font-black leading-tight flex items-center gap-2">
+              {title} <Sparkles className="text-amber-400 animate-pulse" size={24} />
             </h2>
           </motion.div>
           <Link
@@ -83,49 +106,48 @@ export default function NewArrivalsSection({
           </Link>
         </div>
 
-        {/* Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-          {items.map((item, idx) => (
-            <motion.div
-              key={idx}
-              initial={false}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: idx * 0.1 }}
-            >
-              <Link
-                href={ctaHref}
-                className="group block bg-gray-800/50 backdrop-blur-sm rounded-2xl overflow-hidden border border-gray-700/50 hover:border-emerald-500/30 transition-all hover:shadow-2xl hover:shadow-emerald-500/10"
-              >
-                {/* Image */}
-                <div className="aspect-square relative overflow-hidden">
-                  <Image
-                    src={item.image}
-                    alt={item.name}
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-500"
-                    unoptimized
+        {/* Dynamic Content */}
+        {!hasProducts ? (
+          <div className="text-center py-16 text-gray-500 font-medium">
+            No new arrivals found.
+          </div>
+        ) : layoutType === "carousel" ? (
+          <div className="overflow-hidden cursor-grab active:cursor-grabbing" ref={emblaRef}>
+            <div className={`flex ${gapClass}`}>
+              {products.map((product) => (
+                <div
+                  key={product.id}
+                  className={`flex-[0_0_calc(50%-0.5rem)] md:flex-[0_0_calc(33.333%-0.75rem)] ${slideWidthClass} min-w-0 h-auto`}
+                >
+                  <ProductCard
+                    product={product}
+                    variant={cardVariant}
+                    radius={cardRadius}
+                    showBadge={showBadge}
+                    showRating={showRating}
+                    showAddToCart={showAddToCart}
+                    badgeStyle={badgeStyle}
                   />
-                  {item.badge && (
-                    <span className="absolute top-3 left-3 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow-lg">
-                      <Sparkles size={12} /> {item.badge}
-                    </span>
-                  )}
                 </div>
-
-                {/* Info */}
-                <div className="p-4">
-                  <h3 className="font-bold text-white text-sm mb-1 line-clamp-1 group-hover:text-emerald-400 transition-colors">
-                    {item.name}
-                  </h3>
-                  <p className="text-emerald-400 font-extrabold text-lg">
-                    {item.price}
-                  </p>
-                </div>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className={`grid ${colsClass} ${gapClass}`}>
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                variant={cardVariant}
+                radius={cardRadius}
+                showBadge={showBadge}
+                showRating={showRating}
+                showAddToCart={showAddToCart}
+                badgeStyle={badgeStyle}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

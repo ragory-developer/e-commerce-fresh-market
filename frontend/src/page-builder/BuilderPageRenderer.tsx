@@ -1,7 +1,7 @@
 "use client";
 
 import type { BuilderPageDocument, SectionRenderContext } from "./types";
-import { resolveSectionProps, sectionRegistry } from "./registry";
+import { resolveSectionProps, sectionRegistry, migrateDeprecatedSections } from "./registry";
 import { resolveStyleClasses } from "./styleTokens";
 
 export default function BuilderPageRenderer({
@@ -13,7 +13,8 @@ export default function BuilderPageRenderer({
   context?: SectionRenderContext;
   emptyFallback?: React.ReactNode;
 }) {
-  const sections = document?.sections?.filter((section) => !section.settings?.hidden) || [];
+  const rawSections = document?.sections?.filter((section) => !section.settings?.hidden) || [];
+  const { sections } = migrateDeprecatedSections(rawSections);
 
   if (sections.length === 0) {
     return emptyFallback || null;
@@ -29,35 +30,74 @@ export default function BuilderPageRenderer({
           return null;
         }
 
-        const Renderer = definition.Renderer;
+        const variantName = section.variant || definition.defaultVariant;
+        const variantDef = definition.variants[variantName] || definition.variants[definition.defaultVariant];
+        if (!variantDef) return null;
+
+        const Renderer = variantDef.Renderer;
         const styleClasses = resolveStyleClasses(section.styles);
         const customClass = section.styles?.customClass || "";
         const combinedClass = [styleClasses, customClass].filter(Boolean).join(" ");
         
-        const inlineStyles: React.CSSProperties = {};
-        if (section.styles?.customBgColor) {
-          inlineStyles.backgroundColor = section.styles.customBgColor;
+        const inlineStyles: React.CSSProperties = {
+          position: "relative" as const,
+        };
+        const styles = section.styles || {};
+        
+        if (styles.bgColor) {
+          inlineStyles.backgroundColor = styles.bgColor;
+        } else if (styles.customBgColor) {
+          inlineStyles.backgroundColor = styles.customBgColor;
         }
-        if (section.styles?.customBgImage) {
-          inlineStyles.backgroundImage = `url(${section.styles.customBgImage})`;
+
+        if (styles.bgGradient) {
+          inlineStyles.background = styles.bgGradient;
+        }
+
+        const bgImg = styles.bgImage || styles.customBgImage;
+        if (bgImg) {
+          inlineStyles.backgroundImage = `url(${bgImg})`;
           inlineStyles.backgroundSize = "cover";
           inlineStyles.backgroundPosition = "center";
           inlineStyles.backgroundRepeat = "no-repeat";
         }
-        if (section.styles?.customTextColor) {
-          inlineStyles.color = section.styles.customTextColor;
-        }
-        if (section.styles?.customPadding) {
-          inlineStyles.padding = section.styles.customPadding;
-        }
-        if (section.styles?.customAlignment) {
-          inlineStyles.textAlign = section.styles.customAlignment;
+
+        if (styles.textColor) {
+          inlineStyles.color = styles.textColor;
+        } else if (styles.customTextColor) {
+          inlineStyles.color = styles.customTextColor;
         }
 
-        if (combinedClass || Object.keys(inlineStyles).length > 0) {
+        if (styles.paddingX !== undefined || styles.paddingY !== undefined) {
+          const px = styles.paddingX !== undefined ? `${styles.paddingX}px` : "0px";
+          const py = styles.paddingY !== undefined ? `${styles.paddingY}px` : "0px";
+          inlineStyles.padding = `${py} ${px}`;
+        } else if (styles.customPadding) {
+          inlineStyles.padding = styles.customPadding;
+        }
+
+        if (styles.customAlignment) {
+          inlineStyles.textAlign = styles.customAlignment;
+        }
+
+        const hasOverlay = styles.bgOverlay !== undefined && styles.bgOverlay > 0;
+
+        if (combinedClass || Object.keys(inlineStyles).length > 0 || hasOverlay) {
           return (
             <div key={section.id} className={combinedClass} style={inlineStyles}>
-              <Renderer {...props} />
+              {hasOverlay && (
+                <div 
+                  className="absolute inset-0 bg-black pointer-events-none" 
+                  style={{ opacity: styles.bgOverlay! / 100, zIndex: 0 }} 
+                />
+              )}
+              {hasOverlay ? (
+                <div className="relative z-10 w-full h-full">
+                  <Renderer {...props} />
+                </div>
+              ) : (
+                <Renderer {...props} />
+              )}
             </div>
           );
         }

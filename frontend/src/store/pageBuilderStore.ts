@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { BuilderPageDocument, BuilderSection, BuilderPageVersion } from "@/page-builder/types";
-import { createSection } from "@/page-builder/registry";
+import { createSection, migrateDeprecatedSections } from "@/page-builder/registry";
 
 function reorder<T>(items: T[], fromIndex: number, toIndex: number) {
   const next = [...items];
@@ -31,6 +31,8 @@ interface PageBuilderState {
   reorderSections: (fromIndex: number, toIndex: number) => void;
   updateSectionProps: (id: string, patch: Record<string, unknown>) => void;
   updateSectionStyles: (id: string, patch: Partial<BuilderSection["styles"]>) => void;
+  updateSectionVariant: (id: string, variant: string, defaultProps?: Record<string, unknown>) => void;
+  addCustomSection: (section: BuilderSection) => void;
   markSaved: (draftVersionId: string) => void;
   markPublished: (publishedVersionId: string, document: BuilderPageDocument) => void;
 }
@@ -46,15 +48,33 @@ export const usePageBuilderStore = create<PageBuilderState>((set) => ({
   previewMode: "desktop",
 
   hydrate: ({ draft, published }) => {
-    const draftDocument = draft?.document || published?.document || null;
+    let draftDocument = draft?.document || published?.document || null;
+    let publishedDocument = published?.document || null;
+    let migrated = false;
+
+    if (draftDocument?.sections) {
+      const result = migrateDeprecatedSections(draftDocument.sections);
+      if (result.migrated) {
+        draftDocument = { ...draftDocument, sections: result.sections };
+        migrated = true;
+      }
+    }
+
+    if (publishedDocument?.sections) {
+      const result = migrateDeprecatedSections(publishedDocument.sections);
+      if (result.migrated) {
+        publishedDocument = { ...publishedDocument, sections: result.sections };
+      }
+    }
+
     set({
       draft: draftDocument,
-      published: published?.document || null,
+      published: publishedDocument,
       draftVersionId: draft?.id || published?.id || null,
       publishedVersionId: published?.id || null,
       selectedSectionId: null,
       activeDragId: null,
-      dirty: draft?.id !== published?.id,
+      dirty: migrated || draft?.id !== published?.id,
     });
   },
 
@@ -130,6 +150,33 @@ export const usePageBuilderStore = create<PageBuilderState>((set) => ({
             : section
         )),
       },
+      dirty: true,
+    };
+  }),
+
+  updateSectionVariant: (id, variant, defaultProps = {}) => set((state) => {
+    if (!state.draft) return state;
+    return {
+      draft: {
+        ...state.draft,
+        sections: state.draft.sections.map((section) => (
+          section.id === id
+            ? { ...section, variant, props: { ...defaultProps, ...section.props } }
+            : section
+        )),
+      },
+      dirty: true,
+    };
+  }),
+
+  addCustomSection: (section) => set((state) => {
+    if (!state.draft) return state;
+    return {
+      draft: {
+        ...state.draft,
+        sections: [...state.draft.sections, section],
+      },
+      selectedSectionId: section.id,
       dirty: true,
     };
   }),

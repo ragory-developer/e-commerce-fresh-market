@@ -8,6 +8,10 @@ import { ArrowRight, Sparkles } from "lucide-react";
 interface HeroBannerProps {
   title?: string;
   subtitle?: string;
+  badgeText?: string;
+  description?: string;
+  offerText?: string;
+  offerSubtext?: string;
   ctaText?: string;
   ctaHref?: string;
   imageSrc?: string;
@@ -18,6 +22,10 @@ interface HeroBannerProps {
 export default function HeroBanner({
   title = "Discover Natural Beauty",
   subtitle = "Premium skincare for your daily routine",
+  badgeText = "New Collection 2026",
+  description = "Discover our premium collection of beauty & skincare essentials curated just for you.",
+  offerText = "Up to 40% OFF",
+  offerSubtext = "Limited Time",
   ctaText = "Shop Now",
   ctaHref = "/products",
   imageSrc = "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=800&q=80",
@@ -49,7 +57,7 @@ export default function HeroBanner({
           >
             <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5 mb-4 w-fit">
               <Sparkles size={16} className="text-white" />
-              <span className="text-white text-sm font-semibold">New Collection 2026</span>
+              <span className="text-white text-sm font-semibold">{badgeText}</span>
             </div>
             
             <h1 data-field="title" className="text-5xl lg:text-7xl font-black text-white mb-2 leading-[1.1] drop-shadow-lg cursor-text" dangerouslySetInnerHTML={{ __html: title }} />
@@ -58,8 +66,8 @@ export default function HeroBanner({
               {subtitle}
             </p>
             
-            <p className="text-white/80 text-lg mb-8 max-w-md">
-              Discover our premium collection of beauty & skincare essentials curated just for you.
+            <p data-field="description" className="text-white/80 text-lg mb-8 max-w-md cursor-text">
+              {description}
             </p>
             
             <Link data-field="ctaText" href={ctaHref} className="inline-flex items-center gap-2 bg-white text-orange-600 hover:bg-orange-50 px-8 py-4 rounded-full font-bold text-lg transition-all hover:scale-105 shadow-xl shadow-black/10 w-fit">
@@ -92,8 +100,8 @@ export default function HeroBanner({
             </div>
             {/* Floating badge */}
             <div className="absolute -bottom-2 right-4 md:right-12 bg-white rounded-2xl shadow-xl px-5 py-3 animate-float">
-              <p className="text-orange-600 font-black text-lg">Up to 40% OFF</p>
-              <p className="text-gray-500 text-sm font-medium">Limited Time</p>
+              <p className="text-orange-600 font-black text-lg">{offerText}</p>
+              <p className="text-gray-500 text-sm font-medium">{offerSubtext}</p>
             </div>
           </motion.div>
         </div>

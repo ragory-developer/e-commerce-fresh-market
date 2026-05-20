@@ -591,15 +591,24 @@ model BuilderTemplatePack {
 
 model BuilderTemplate {
   id          String              @id @default(cuid())
-  packId      String
+  key         String              @unique           // "default-home", "ramadan-home", "hero-festive-v1"
   name        String              // e.g. "Eid Home Layout 1"
-  pageType    String              @default("home") // "home", "landing", etc.
+  scope       String              @default("page")  // "page" | "block" | "theme"
+  pageType    String              @default("home")  // which page this targets
+  themeKey    String?             // "ramadan"|"eid"|"puja"|"boishakh"|"blackfriday"|"christmas"
+  thumbnail   String?             // media URL for the picker
   document    Json                // The pre-configured JSON template
+  status      String              @default("active")// "active"|"locked"|"draft"
+  isSystem    Boolean             @default(false)   // shipped by us vs user-created
+  packId      String?
+  createdById String?
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
-  pack        BuilderTemplatePack @relation(fields: [packId], references: [id], onDelete: Cascade)
+  pack        BuilderTemplatePack? @relation(fields: [packId], references: [id], onDelete: Cascade)
 
   @@index([packId])
+  @@index([scope, pageType])
+  @@index([themeKey])
 }
 
 model BuilderComponent {
