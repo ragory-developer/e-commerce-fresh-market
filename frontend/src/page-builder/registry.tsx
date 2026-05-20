@@ -1292,13 +1292,20 @@ export const sectionRegistry: Record<string, SectionDefinition> = {
 
 export const availableSections = Object.values(sectionRegistry).filter((def) => !def.deprecated);
 
+export function generateId(prefix: string): string {
+  const uuid = typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : Math.random().toString(36).substring(2) + Date.now().toString(36);
+  return `${prefix.replace(/([a-z])([A-Z])/g, "$1_$2").toLowerCase()}_${uuid}`;
+}
+
 export function createSection(type: string): BuilderSection {
   const definition = sectionRegistry[type];
   if (!definition) {
     throw new Error(`Unknown section type: ${type}`);
   }
 
-  const id = `${type.replace(/([a-z])([A-Z])/g, "$1_$2").toLowerCase()}_${crypto.randomUUID()}`;
+  const id = generateId(type);
   const variantName = definition.defaultVariant;
   const variantDef = definition.variants[variantName];
 

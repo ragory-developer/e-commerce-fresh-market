@@ -87,7 +87,7 @@ export default function TestimonialSection({
   const styles = themeStyles[themeVariant] || themeStyles.default;
 
   return (
-    <section className={`py-12 lg:py-20 ${styles.bg}`}>
+    <section className={`py-8 sm:py-12 lg:py-20 ${styles.bg}`}>
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-12">
@@ -100,17 +100,17 @@ export default function TestimonialSection({
             <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold mb-4 ${styles.badgeBg}`}>
               <Star size={14} className={styles.starColor} /> Customer Reviews
             </span>
-            <h2 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-3">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-2 sm:mb-3">
               {title}
             </h2>
-            <p className="text-gray-500 dark:text-gray-400 text-lg max-w-lg mx-auto">
+            <p className="text-gray-500 dark:text-gray-400 text-sm sm:text-base lg:text-lg max-w-lg mx-auto">
               {subtitle}
             </p>
           </motion.div>
         </div>
 
         {/* Testimonial Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {testimonials.map((item, idx) => (
             <motion.div
               key={idx}

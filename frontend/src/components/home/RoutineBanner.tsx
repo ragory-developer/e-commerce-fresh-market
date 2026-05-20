@@ -82,11 +82,11 @@ export default function RoutineBanner({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className={`relative overflow-hidden rounded-3xl bg-gradient-to-r ${styles.gradient} min-h-[320px]`}
+          className={`relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r ${styles.gradient} min-h-[200px] sm:min-h-[260px] md:min-h-[320px]`}
         >
           <div className={`flex ${flexDirection} items-center`}>
             {/* Image */}
-            <div data-field="imageSrc" className="md:w-2/5 relative h-[250px] md:h-[380px] w-full cursor-pointer">
+            <div data-field="imageSrc" className="md:w-2/5 relative h-[180px] sm:h-[250px] md:h-[380px] w-full cursor-pointer">
               <Image
                 src={imageSrc}
                 alt="Routine Products"

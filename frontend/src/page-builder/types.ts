@@ -8,6 +8,7 @@ export interface BuilderPageDocument {
     key: BuilderPageKey;
     slug: string;
     title: string;
+    theme?: string | null;
   };
   sections: BuilderSection[];
   seo?: {

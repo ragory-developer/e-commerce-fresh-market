@@ -201,6 +201,7 @@ export const builderDocumentSchema = z.object({
     key: z.string().min(1).max(80),
     slug: z.string().min(1).max(191),
     title: z.string().min(1).max(191),
+    theme: z.string().max(80).nullish(),
   }),
   sections: z.array(builderSectionSchema).max(80),
   seo: z.object({
@@ -260,6 +261,169 @@ export function createDefaultHomeDocument(): BuilderDocument {
           subtitle: "Browse our curated collection of premium products",
           showcaseCategoryId: "all",
           textAlign: "left",
+        },
+      },
+    ],
+  };
+}
+
+export function createMinimalHomeDocument(): BuilderDocument {
+  return {
+    schemaVersion: 1,
+    page: { key: "home", slug: "/", title: "Home - Minimal" },
+    sections: [
+      {
+        id: "hero_minimal",
+        type: "HeroBanner",
+        variant: "default",
+        props: {
+          title: "Pure Organic Living",
+          subtitle: "Nourish your skin and body with nature's finest extracts.",
+          ctaText: "Explore Collection",
+          ctaHref: "/products",
+          imageSrc: "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=800&q=80",
+          textAlign: "center",
+        },
+      },
+      {
+        id: "new_arrivals_minimal",
+        type: "NewArrivalsSection",
+        variant: "default",
+        props: {
+          title: "The Latest Additions",
+          subtitle: "Newly launched items selected for quality and freshness.",
+          ctaHref: "/products?sort=newest",
+        },
+      },
+      {
+        id: "routine_minimal",
+        type: "RoutineBanner",
+        variant: "default",
+        props: {
+          title: "Simple Cleanse Routine",
+          subtitle: "A step-by-step skincare guide",
+          description: "Follow this minimalist routine with our organic green tea products to maintain skin health with zero clutter.",
+          ctaText: "Learn More",
+          ctaHref: "/guides/cleanse",
+          imageSrc: "https://images.unsplash.com/photo-1556229174-5e42a09e45af?auto=format&fit=crop&w=800&q=80",
+          imageAlign: "right",
+        },
+      },
+    ],
+  };
+}
+
+export function createDiscountHomeDocument(): BuilderDocument {
+  return {
+    schemaVersion: 1,
+    page: { key: "home", slug: "/", title: "Home - Deals" },
+    sections: [
+      {
+        id: "hero_discount",
+        type: "HeroBanner",
+        variant: "default",
+        props: {
+          title: "Massive Summer Deals!",
+          subtitle: "Premium organic wellness up to 60% OFF.",
+          ctaText: "Shop the Sale",
+          ctaHref: "/products?sort=discount",
+          imageSrc: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&w=800&q=80",
+          textAlign: "left",
+        },
+      },
+      {
+        id: "promo_badges_discount",
+        type: "PromoBadgeGrid",
+        variant: "default",
+        props: {},
+      },
+      {
+        id: "hot_deals_discount",
+        type: "HotDealsSection",
+        variant: "default",
+        props: {
+          title: "Flash Discount Deals",
+          subtitle: "Limited quantity offers. Act fast before they sell out!",
+        },
+      },
+      {
+        id: "special_offers_discount",
+        type: "SpecialOffersBanner",
+        variant: "default",
+        props: {
+          title: "Bundle & Save Extra",
+          subtitle: "Get free delivery and extra gifts with any combo set purchase.",
+          ctaText: "View Combos",
+          ctaHref: "/products?offer=combo",
+        },
+      },
+      {
+        id: "testimonials_discount",
+        type: "TestimonialSection",
+        variant: "default",
+        props: {
+          title: "Loved by thousands",
+          subtitle: "See why customers keep coming back for our premium sales.",
+        },
+      },
+    ],
+  };
+}
+
+export function createWellnessHomeDocument(): BuilderDocument {
+  return {
+    schemaVersion: 1,
+    page: { key: "home", slug: "/", title: "Home - Wellness" },
+    sections: [
+      {
+        id: "hero_wellness",
+        type: "HeroBanner",
+        variant: "default",
+        props: {
+          title: "Holistic Health & Beauty",
+          subtitle: "Nurtured by nature, refined by advanced organic science.",
+          ctaText: "Book Appointment",
+          ctaHref: "/consultation",
+          imageSrc: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=800&q=80",
+          textAlign: "left",
+        },
+      },
+      {
+        id: "product_showcase_wellness",
+        type: "ProductShowcase",
+        variant: "default",
+        props: {
+          title: "Organic Superfoods & Herbals",
+          subtitle: "Boost your nutrition with our organic certified categories.",
+          showcaseCategoryId: "all",
+          textAlign: "center",
+        },
+      },
+      {
+        id: "consultation_wellness",
+        type: "ConsultationBanner",
+        variant: "default",
+        props: {
+          title: "Free Skincare Consultation",
+          subtitle: "Discuss with certified nutritionists and skincare experts online.",
+          ctaText: "Reserve Now",
+          ctaHref: "/consultation",
+          imageSrc: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=800&q=80",
+          imageAlign: "right",
+        },
+      },
+      {
+        id: "routine_wellness",
+        type: "RoutineBanner",
+        variant: "default",
+        props: {
+          title: "Daily Healthy Glow Guide",
+          subtitle: "Achieve visible health from inside out",
+          description: "Download our custom curated morning routine planner. Learn what nutrients keep your skin elastic and protected all day.",
+          ctaText: "Read the Guide",
+          ctaHref: "/guides/routine",
+          imageSrc: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=800&q=80",
+          imageAlign: "left",
         },
       },
     ],

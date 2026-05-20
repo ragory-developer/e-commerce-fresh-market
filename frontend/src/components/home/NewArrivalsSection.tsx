@@ -5,23 +5,27 @@ import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import ProductCard from "@/components/ui/ProductCard";
+import SectionWrapper from "./SectionWrapper";
 
 interface NewArrivalsSectionProps {
   title?: string;
   subtitle?: string;
   products?: any[];
+  textAlign?: "left" | "center" | "right";
   ctaHref?: string;
 
   // Custom query/chrome props
   cols?: number;
   gap?: "sm" | "md" | "lg";
-  cardVariant?: "classic" | "sleek" | "minimal";
+  cardVariant?: "classic" | "sleek" | "minimal" | "festive";
   cardRadius?: "none" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "full";
   showBadge?: boolean;
   showRating?: boolean;
   showAddToCart?: boolean;
   badgeStyle?: "pill" | "corner" | "ribbon";
   layoutType?: "grid" | "carousel";
+  builderClassName?: string;
+  builderStyle?: React.CSSProperties;
 }
 
 export default function NewArrivalsSection({
@@ -39,6 +43,9 @@ export default function NewArrivalsSection({
   showAddToCart = true,
   badgeStyle = "pill",
   layoutType = "grid",
+  textAlign = "left",
+  builderClassName,
+  builderStyle,
 }: NewArrivalsSectionProps) {
   const [emblaRef] = useEmblaCarousel({
     align: "start",
@@ -56,12 +63,12 @@ export default function NewArrivalsSection({
 
   // Grid columns mappings
   const gridColsClass: Record<number, string> = {
-    3: "grid-cols-2 md:grid-cols-3 lg:grid-cols-3",
-    4: "grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
-    5: "grid-cols-2 md:grid-cols-3 lg:grid-cols-5",
-    6: "grid-cols-2 md:grid-cols-4 lg:grid-cols-6",
+    3: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3",
+    4: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
+    5: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5",
+    6: "grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6",
   };
-  const colsClass = gridColsClass[cols] || "grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
+  const colsClass = gridColsClass[cols] || "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
 
   // Carousel Slide Width Mappings
   const slideWidths: Record<number, string> = {
@@ -75,13 +82,12 @@ export default function NewArrivalsSection({
   const hasProducts = products && products.length > 0;
 
   return (
-    <section className="py-12 lg:py-20 bg-gray-900 text-white relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl" />
-      </div>
-
+    <SectionWrapper
+      bgWhite={false}
+      textAlign={textAlign}
+      builderClassName={builderClassName}
+      builderStyle={builderStyle}
+    >
       <div className="container mx-auto px-4 relative z-10">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
@@ -117,7 +123,7 @@ export default function NewArrivalsSection({
               {products.map((product) => (
                 <div
                   key={product.id}
-                  className={`flex-[0_0_calc(50%-0.5rem)] md:flex-[0_0_calc(33.333%-0.75rem)] ${slideWidthClass} min-w-0 h-auto`}
+                  className={`flex-[0_0_100%] sm:flex-[0_0_calc(50%-0.5rem)] md:flex-[0_0_calc(33.333%-0.75rem)] ${slideWidthClass} min-w-0 h-auto`}
                 >
                   <ProductCard
                     product={product}
@@ -149,6 +155,6 @@ export default function NewArrivalsSection({
           </div>
         )}
       </div>
-    </section>
+    </SectionWrapper>
   );
 }

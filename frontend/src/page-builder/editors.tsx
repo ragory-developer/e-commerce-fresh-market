@@ -245,6 +245,7 @@ export function ProductEditorFields({ section, props, categories, onChange }: { 
     { label: "Classic Card", value: "classic" },
     { label: "Sleek Glass", value: "sleek" },
     { label: "Minimalist", value: "minimal" },
+    { label: "Festive Shimmer", value: "festive" },
   ];
 
   const radiusOptions = [

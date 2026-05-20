@@ -47,7 +47,7 @@ export default function HeroBanner({
   return (
     <section className={`relative w-full overflow-hidden animate-gradient ${themeClasses}`}>
       <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row items-center min-h-[400px] lg:min-h-[500px] py-8 md:py-0">
+        <div className="flex flex-col md:flex-row items-center min-h-[280px] sm:min-h-[360px] lg:min-h-[500px] py-6 sm:py-8 md:py-0">
           {/* Left Content */}
           <motion.div
             initial={false}
@@ -55,24 +55,24 @@ export default function HeroBanner({
             transition={{ duration: 0.7 }}
             className={`md:w-1/2 z-10 flex flex-col ${alignClass}`}
           >
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5 mb-4 w-fit">
-              <Sparkles size={16} className="text-white" />
-              <span className="text-white text-sm font-semibold">{badgeText}</span>
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 bg-white/20 backdrop-blur-sm rounded-full px-3 sm:px-4 py-1 sm:py-1.5 mb-3 sm:mb-4 w-fit">
+              <Sparkles size={14} className="text-white sm:w-4 sm:h-4" />
+              <span className="text-white text-xs sm:text-sm font-semibold">{badgeText}</span>
             </div>
             
-            <h1 data-field="title" className="text-5xl lg:text-7xl font-black text-white mb-2 leading-[1.1] drop-shadow-lg cursor-text" dangerouslySetInnerHTML={{ __html: title }} />
+            <h1 data-field="title" className="text-2xl sm:text-4xl md:text-5xl lg:text-7xl font-black text-white mb-2 leading-[1.1] drop-shadow-lg cursor-text" dangerouslySetInnerHTML={{ __html: title }} />
             
-            <p data-field="subtitle" className="text-2xl lg:text-3xl font-bold text-white/90 mb-6 drop-shadow cursor-text">
+            <p data-field="subtitle" className="text-base sm:text-xl md:text-2xl lg:text-3xl font-bold text-white/90 mb-4 sm:mb-6 drop-shadow cursor-text">
               {subtitle}
             </p>
             
-            <p data-field="description" className="text-white/80 text-lg mb-8 max-w-md cursor-text">
+            <p data-field="description" className="text-white/80 text-sm sm:text-base lg:text-lg mb-5 sm:mb-8 max-w-md cursor-text">
               {description}
             </p>
             
-            <Link data-field="ctaText" href={ctaHref} className="inline-flex items-center gap-2 bg-white text-orange-600 hover:bg-orange-50 px-8 py-4 rounded-full font-bold text-lg transition-all hover:scale-105 shadow-xl shadow-black/10 w-fit">
+            <Link data-field="ctaText" href={ctaHref} className="inline-flex items-center gap-2 bg-white text-orange-600 hover:bg-orange-50 px-5 sm:px-8 py-2.5 sm:py-4 rounded-full font-bold text-sm sm:text-base lg:text-lg transition-all hover:scale-105 shadow-xl shadow-black/10 w-fit">
               <span>{ctaText}</span>
-              <ArrowRight size={20} />
+              <ArrowRight size={18} />
             </Link>
           </motion.div>
  
@@ -83,7 +83,7 @@ export default function HeroBanner({
             transition={{ duration: 0.7, delay: 0.2 }}
             className="md:w-1/2 relative mt-8 md:mt-0 flex items-center justify-center"
           >
-            <div className="relative w-[300px] h-[300px] lg:w-[420px] lg:h-[420px]">
+            <div className="relative w-[200px] h-[200px] sm:w-[280px] sm:h-[280px] md:w-[300px] md:h-[300px] lg:w-[420px] lg:h-[420px]">
               {/* Decorative circle */}
               <div className="absolute inset-0 rounded-full bg-white/10 backdrop-blur-sm" />
               <div className="absolute inset-4 rounded-full bg-white/10" />
@@ -99,9 +99,9 @@ export default function HeroBanner({
               </div>
             </div>
             {/* Floating badge */}
-            <div className="absolute -bottom-2 right-4 md:right-12 bg-white rounded-2xl shadow-xl px-5 py-3 animate-float">
-              <p className="text-orange-600 font-black text-lg">{offerText}</p>
-              <p className="text-gray-500 text-sm font-medium">{offerSubtext}</p>
+            <div className="absolute -bottom-2 right-2 sm:right-4 md:right-12 bg-white rounded-xl sm:rounded-2xl shadow-xl px-3 sm:px-5 py-2 sm:py-3 animate-float">
+              <p className="text-orange-600 font-black text-sm sm:text-lg">{offerText}</p>
+              <p className="text-gray-500 text-xs sm:text-sm font-medium">{offerSubtext}</p>
             </div>
           </motion.div>
         </div>

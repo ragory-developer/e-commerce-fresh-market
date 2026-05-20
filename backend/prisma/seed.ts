@@ -1,6 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import { createDefaultHomeDocument } from '../src/modules/builder/schema';
+import {
+  createDefaultHomeDocument,
+  createMinimalHomeDocument,
+  createDiscountHomeDocument,
+  createWellnessHomeDocument,
+} from '../src/modules/builder/schema';
 
 const prisma = new PrismaClient();
 
@@ -163,6 +168,7 @@ async function main() {
       slug: 'aloe-vera-soothing-gel',
       description: 'Pure cooling organic aloe vera gel for body and face hydration.',
       price: 450,
+      specialPrice: 390,
       stock: 100,
       image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=800&q=80',
       images: '["https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=800&q=80"]',
@@ -176,6 +182,7 @@ async function main() {
       slug: 'vitamin-c-glow-serum',
       description: 'Highly effective daily vitamin C serum for brighter, radiant skin.',
       price: 1200,
+      specialPrice: 990,
       stock: 50,
       image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80',
       images: '["https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80"]',
@@ -215,6 +222,7 @@ async function main() {
       slug: 'fresh-organic-bananas',
       description: 'Sweet organic yellow bananas rich in potassium and energy.',
       price: 120,
+      specialPrice: 100,
       stock: 150,
       image: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=800&q=80',
       images: '["https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=800&q=80"]',
@@ -228,6 +236,7 @@ async function main() {
       slug: 'fresh-milk-1l',
       description: 'Pasteurized pure dairy milk from organic country farms.',
       price: 95,
+      specialPrice: 80,
       stock: 80,
       image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=800&q=80',
       images: '["https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=800&q=80"]',
@@ -487,7 +496,13 @@ async function main() {
   const defaultHomeDoc = createDefaultHomeDocument();
   await prisma.builderTemplate.upsert({
     where: { key: 'default-home' },
-    update: {},
+    update: {
+      name: 'Default Home Layout',
+      scope: 'page',
+      pageType: 'home',
+      isSystem: true,
+      document: JSON.parse(JSON.stringify(defaultHomeDoc)),
+    },
     create: {
       key: 'default-home',
       name: 'Default Home Layout',
@@ -495,6 +510,66 @@ async function main() {
       pageType: 'home',
       isSystem: true,
       document: JSON.parse(JSON.stringify(defaultHomeDoc)),
+    },
+  });
+
+  const minimalHomeDoc = createMinimalHomeDocument();
+  await prisma.builderTemplate.upsert({
+    where: { key: 'minimal-home' },
+    update: {
+      name: 'Minimal Storefront Layout',
+      scope: 'page',
+      pageType: 'home',
+      isSystem: true,
+      document: JSON.parse(JSON.stringify(minimalHomeDoc)),
+    },
+    create: {
+      key: 'minimal-home',
+      name: 'Minimal Storefront Layout',
+      scope: 'page',
+      pageType: 'home',
+      isSystem: true,
+      document: JSON.parse(JSON.stringify(minimalHomeDoc)),
+    },
+  });
+
+  const discountHomeDoc = createDiscountHomeDocument();
+  await prisma.builderTemplate.upsert({
+    where: { key: 'discount-home' },
+    update: {
+      name: 'Mega Discount Storefront Layout',
+      scope: 'page',
+      pageType: 'home',
+      isSystem: true,
+      document: JSON.parse(JSON.stringify(discountHomeDoc)),
+    },
+    create: {
+      key: 'discount-home',
+      name: 'Mega Discount Storefront Layout',
+      scope: 'page',
+      pageType: 'home',
+      isSystem: true,
+      document: JSON.parse(JSON.stringify(discountHomeDoc)),
+    },
+  });
+
+  const wellnessHomeDoc = createWellnessHomeDocument();
+  await prisma.builderTemplate.upsert({
+    where: { key: 'wellness-home' },
+    update: {
+      name: 'Organic & Wellness Storefront Layout',
+      scope: 'page',
+      pageType: 'home',
+      isSystem: true,
+      document: JSON.parse(JSON.stringify(wellnessHomeDoc)),
+    },
+    create: {
+      key: 'wellness-home',
+      name: 'Organic & Wellness Storefront Layout',
+      scope: 'page',
+      pageType: 'home',
+      isSystem: true,
+      document: JSON.parse(JSON.stringify(wellnessHomeDoc)),
     },
   });
 
@@ -540,7 +615,46 @@ async function main() {
             subtitle: 'Our recommended organic essentials for this festive season',
             showcaseCategoryId: 'all',
             textAlign: 'center',
+            cardVariant: 'festive',
           },
+          styles: {
+            spacingTop: "xl",
+            spacingBottom: "lg",
+          }
+        },
+        {
+          id: `hot_deals_${festival}`,
+          type: 'HotDealsSection',
+          variant: 'default',
+          props: {
+            title: `Festive Hot Deals`,
+            subtitle: 'Limited time offers for the celebration',
+            cardVariant: 'festive',
+            cols: 4,
+            layoutType: 'grid',
+          },
+          styles: {
+            spacingTop: "lg",
+            spacingBottom: "lg",
+            background: "brand",
+          }
+        },
+        {
+          id: `new_arrivals_${festival}`,
+          type: 'NewArrivalsSection',
+          variant: 'default',
+          props: {
+            title: `New Arrivals`,
+            subtitle: `Fresh items for ${title}`,
+            cardVariant: 'festive',
+            cols: 4,
+            layoutType: 'carousel',
+          },
+          styles: {
+            spacingTop: "lg",
+            spacingBottom: "lg",
+            background: "gray",
+          }
         },
         {
           id: `consultation_${festival}`,

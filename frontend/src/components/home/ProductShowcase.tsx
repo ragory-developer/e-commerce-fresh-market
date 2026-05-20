@@ -18,13 +18,16 @@ interface ProductShowcaseProps {
   // Custom chrome props
   cols?: number;
   gap?: "sm" | "md" | "lg";
-  cardVariant?: "classic" | "sleek" | "minimal";
+  cardVariant?: "classic" | "sleek" | "minimal" | "festive";
   cardRadius?: "none" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "full";
   showBadge?: boolean;
   showRating?: boolean;
   showAddToCart?: boolean;
   badgeStyle?: "pill" | "corner" | "ribbon";
   layoutType?: "grid" | "carousel";
+  
+  builderClassName?: string;
+  builderStyle?: React.CSSProperties;
 }
 
 export default function ProductShowcase({
@@ -43,6 +46,8 @@ export default function ProductShowcase({
   showAddToCart = true,
   badgeStyle = "pill",
   layoutType = "grid",
+  builderClassName,
+  builderStyle,
 }: ProductShowcaseProps) {
   const [activeCategory, setActiveCategory] = useState("All");
 
@@ -101,6 +106,8 @@ export default function ProductShowcase({
       }
       bgWhite
       textAlign={textAlign}
+      builderClassName={builderClassName}
+      builderStyle={builderStyle}
     >
       {/* Category Filter */}
       {showCategoryFilter && (

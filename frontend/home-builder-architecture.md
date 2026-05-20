@@ -167,16 +167,18 @@ Seed creates exactly one `BuilderTemplate{ key:"default-home", isSystem:true }` 
 ## 7. Theme application flow
 
 ```
-Admin clicks "Apply Ramadan theme" in template picker
-  → preview modal shows BuilderTemplate(themeKey:"ramadan").document rendered
-  → admin clicks Apply
+Admin clicks "Templates" in builder toolbar
+  → Template Picker Modal opens with tabs: [Starters, Festive Templates, My Blocks]
+  → Admin selects "Ramadan" from Festive Templates
+  → Modal shows BuilderTemplate(themeKey:"ramadan").document rendered preview
+  → Admin clicks Apply
   → POST /api/builder/pages/home/apply-template { templateId }
-  → server: clones template.document into a new draft version, bumps version number
-  → admin returns to editor with the Ramadan layout loaded as draft
-  → admin can edit any section, save, publish like normal
+  → Server: clones template.document into a new draft version, bumps version number
+  → Admin returns to editor with the Ramadan layout loaded as draft
+  → Admin can edit any section, save, publish like normal
 ```
 
-Apply = **replace draft**, not merge. The previous draft is preserved as an older version (you have versioning already) so "undo theme" = restore previous version.
+Apply = **replace draft**, not merge. The previous draft is preserved as an older version (version history is available) so "undo theme" = restore previous version.
 
 ---
 
@@ -251,7 +253,7 @@ For `ProductShowcase` (and similar), editor exposes:
 }
 ```
 
-`ProductCard` itself takes a `variant` prop and renders accordingly. Card content (name, price, image) is never editable — that's product data.
+`ProductCard` itself takes a `variant` prop and renders accordingly. Card content (name, price, image) is never editable — that's product data. The card fully supports `VARIABLE` product types natively by showing a "Select Options" redirect button when applicable instead of hiding the action. We also added a `"festive"` card variant featuring golden borders and ambient amber glows for high-quality holiday styling.
 
 ---
 

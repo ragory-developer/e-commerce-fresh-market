@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import EditableSection from "@/components/admin/HomeBuilder/wrappers/EditableSection";
 import { InputField, SegmentedControl, TextAreaField, MediaPickerField } from "@/page-builder/editors";
-import { availableSections, resolveSectionProps, sectionRegistry } from "@/page-builder/registry";
+import { availableSections, resolveSectionProps, sectionRegistry, generateId } from "@/page-builder/registry";
 import type { BuilderPageDocument, BuilderSection } from "@/page-builder/types";
 import { usePageBuilderStore } from "@/store/pageBuilderStore";
 import { resolveStyleClasses } from "@/page-builder/styleTokens";
@@ -422,24 +422,20 @@ export default function HomeBuilderView({
 
     if (combinedClass || Object.keys(inlineStyles).length > 0 || hasOverlay) {
       return (
-        <div className={combinedClass} style={inlineStyles}>
+        <div className="relative group/builder-section">
           {hasOverlay && (
             <div 
-              className="absolute inset-0 bg-black pointer-events-none" 
-              style={{ opacity: styles.bgOverlay! / 100, zIndex: 0 }} 
+              className="absolute inset-0 bg-black pointer-events-none z-[1]" 
+              style={{ opacity: styles.bgOverlay! / 100 }} 
             />
           )}
-          {hasOverlay ? (
-            <div className="relative z-10 w-full h-full">
-              <Renderer {...props} />
-            </div>
-          ) : (
-            <Renderer {...props} />
-          )}
+          <div className="relative z-[2] w-full h-full">
+            <Renderer {...props} builderClassName={combinedClass} builderStyle={inlineStyles} />
+          </div>
         </div>
       );
     }
-    return <Renderer {...props} />;
+    return <Renderer {...props} builderClassName={combinedClass} builderStyle={inlineStyles} />;
   };
 
   const handleDragStart = (event: DragEventLike) => {
@@ -552,7 +548,7 @@ export default function HomeBuilderView({
                                     onClick={() => {
                                       // Instantiate block copy with fresh generated ID
                                       const sectClone = JSON.parse(JSON.stringify(sect));
-                                      sectClone.id = `${sectClone.type.replace(/([a-z])([A-Z])/g, "$1_$2").toLowerCase()}_${crypto.randomUUID()}`;
+                                      sectClone.id = generateId(sectClone.type);
                                       addCustomSection(sectClone);
                                       toast.success(`Inserted "${block.name}" block`);
                                     }}
@@ -957,6 +953,7 @@ export default function HomeBuilderView({
               ))}
             </div>
             <div className="flex items-center gap-2">
+
               <button
                 type="button"
                 onClick={() => setIsTemplatesModalOpen(true)}

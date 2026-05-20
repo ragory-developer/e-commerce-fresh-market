@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { BuilderPageDocument, BuilderSection, BuilderPageVersion } from "@/page-builder/types";
-import { createSection, migrateDeprecatedSections } from "@/page-builder/registry";
+import { createSection, migrateDeprecatedSections, sectionRegistry } from "@/page-builder/registry";
 
 function reorder<T>(items: T[], fromIndex: number, toIndex: number) {
   const next = [...items];
@@ -18,6 +18,7 @@ interface PageBuilderState {
   activeDragId: string | null;
   dirty: boolean;
   previewMode: "desktop" | "tablet" | "mobile";
+  pageTheme: string | null;
   hydrate: (payload: {
     draft?: BuilderPageVersion | null;
     published?: BuilderPageVersion | null;
@@ -26,6 +27,7 @@ interface PageBuilderState {
   setSelectedSectionId: (id: string | null) => void;
   setActiveDragId: (id: string | null) => void;
   setPreviewMode: (mode: "desktop" | "tablet" | "mobile") => void;
+  setPageTheme: (themeKey: string) => void;
   addSection: (type: string) => void;
   removeSection: (id: string) => void;
   reorderSections: (fromIndex: number, toIndex: number) => void;
@@ -46,6 +48,7 @@ export const usePageBuilderStore = create<PageBuilderState>((set) => ({
   activeDragId: null,
   dirty: false,
   previewMode: "desktop",
+  pageTheme: null,
 
   hydrate: ({ draft, published }) => {
     let draftDocument = draft?.document || published?.document || null;
@@ -75,6 +78,7 @@ export const usePageBuilderStore = create<PageBuilderState>((set) => ({
       selectedSectionId: null,
       activeDragId: null,
       dirty: migrated || draft?.id !== published?.id,
+      pageTheme: (draftDocument as any)?.page?.theme || null,
     });
   },
 
@@ -82,6 +86,7 @@ export const usePageBuilderStore = create<PageBuilderState>((set) => ({
     draft: document,
     selectedSectionId: null,
     dirty: true,
+    pageTheme: (document as any)?.page?.theme || null,
   }),
 
   setSelectedSectionId: (selectedSectionId) => set({ selectedSectionId }),
@@ -177,6 +182,42 @@ export const usePageBuilderStore = create<PageBuilderState>((set) => ({
         sections: [...state.draft.sections, section],
       },
       selectedSectionId: section.id,
+      dirty: true,
+    };
+  }),
+
+  setPageTheme: (themeKey) => set((state) => {
+    if (!state.draft) return state;
+
+    const updatedSections = state.draft.sections.map((section) => {
+      const definition = sectionRegistry[section.type];
+      if (!definition) return section;
+
+      const targetVariant = (themeKey === "default" || themeKey === "classic")
+        ? definition.defaultVariant
+        : themeKey;
+
+      if (definition.variants && definition.variants[targetVariant]) {
+        const defaultProps = definition.variants[targetVariant].defaultProps || {};
+        return {
+          ...section,
+          variant: targetVariant,
+          props: { ...defaultProps, ...section.props },
+        };
+      }
+      return section;
+    });
+
+    return {
+      draft: {
+        ...state.draft,
+        page: {
+          ...state.draft.page,
+          theme: themeKey,
+        },
+        sections: updatedSections,
+      },
+      pageTheme: themeKey,
       dirty: true,
     };
   }),

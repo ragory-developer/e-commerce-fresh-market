@@ -373,11 +373,12 @@ export class BuilderController {
       });
 
       // Clone template document and update its page metadata to match target page
-      const clonedDoc = JSON.parse(JSON.stringify(template.document)) as BuilderDocument;
+      const clonedDoc = JSON.parse(JSON.stringify(template.document)) as any;
       clonedDoc.page = {
         key: page.key,
         slug: page.slug,
         title: page.title,
+        theme: template.themeKey,
       };
 
       const draft = await tx.builderPageVersion.create({

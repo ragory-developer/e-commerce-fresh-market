@@ -66,21 +66,21 @@ export default function PromoBadgeGrid({ badges = defaultBadges }: PromoBadgeGri
               >
                 <Link
                   href={badge.href}
-                  className={`group relative block overflow-hidden rounded-2xl bg-gradient-to-br ${badge.bgColor} p-6 lg:p-8 text-white text-center transition-all hover:shadow-2xl hover:scale-[1.03] active:scale-[0.98]`}
+                  className={`group relative block overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br ${badge.bgColor} p-4 sm:p-6 lg:p-8 text-white text-center transition-all hover:shadow-2xl hover:scale-[1.03] active:scale-[0.98]`}
                 >
                   {/* Shimmer overlay */}
                   <div className="shimmer absolute inset-0 pointer-events-none" />
 
                   {/* Icon */}
-                  <div className="bg-white/20 backdrop-blur-sm w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                    <IconComponent size={28} />
+                  <div className="bg-white/20 backdrop-blur-sm w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-2.5 sm:mb-4 group-hover:scale-110 transition-transform">
+                    <IconComponent size={20} className="sm:w-7 sm:h-7" />
                   </div>
 
                   {/* Text */}
-                  <h3 className="text-xl lg:text-2xl font-black leading-tight">
+                  <h3 className="text-base sm:text-xl lg:text-2xl font-black leading-tight">
                     {badge.title}
                   </h3>
-                  <p className="text-white/80 font-bold text-sm uppercase tracking-wider mt-1">
+                  <p className="text-white/80 font-bold text-xs sm:text-sm uppercase tracking-wider mt-0.5 sm:mt-1">
                     {badge.subtitle}
                   </p>
 

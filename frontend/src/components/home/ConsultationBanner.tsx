@@ -85,14 +85,14 @@ export default function ConsultationBanner({
         >
           <div className={`flex ${flexDirection}`}>
             {/* Content Side */}
-            <div className="md:w-1/2 p-8 lg:p-12 flex flex-col justify-center">
+            <div className="md:w-1/2 p-5 sm:p-8 lg:p-12 flex flex-col justify-center">
               <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold w-fit mb-6 ${styles.badgeBg}`}>
                 <CheckCircle2 size={16} /> {badgeText}
               </span>
-              <h2 data-field="title" className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-4 leading-tight cursor-text">
+              <h2 data-field="title" className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-3 sm:mb-4 leading-tight cursor-text">
                 {title}
               </h2>
-              <p data-field="subtitle" className="text-gray-600 dark:text-gray-300 text-lg mb-6 leading-relaxed cursor-text">
+              <p data-field="subtitle" className="text-gray-600 dark:text-gray-300 text-sm sm:text-base lg:text-lg mb-4 sm:mb-6 leading-relaxed cursor-text">
                 {subtitle}
               </p>
 
@@ -108,14 +108,14 @@ export default function ConsultationBanner({
               <Link
                 data-field="ctaText"
                 href={ctaHref}
-                className={`inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-bold text-base transition-all hover:scale-105 shadow-lg w-fit ${styles.btnClass}`}
+                className={`inline-flex items-center gap-2 px-5 sm:px-8 py-2.5 sm:py-3.5 rounded-full font-bold text-sm sm:text-base transition-all hover:scale-105 shadow-lg w-fit ${styles.btnClass}`}
               >
                 {ctaText} <ArrowRight size={18} />
               </Link>
             </div>
 
             {/* Image Side */}
-            <div data-field="imageSrc" className="md:w-1/2 relative min-h-[300px] md:min-h-[400px] cursor-pointer">
+            <div data-field="imageSrc" className="md:w-1/2 relative min-h-[200px] sm:min-h-[260px] md:min-h-[400px] cursor-pointer">
               <Image
                 src={imageSrc}
                 alt="Skincare Consultation"

@@ -48,5 +48,18 @@ Refer to these files when modifying the builder architecture:
 For each phase of the implementation:
 1. **Prepare**: Open the relevant backend or frontend files, check for existing code patterns, and double-check instructions in the architecture document.
 2. **Implement**: Refer to [skill.md](file:///d:/Rasel%20Mahmud%20Shanto/e-commerce-fresh-market/frontend/skill.md) for concrete templates and syntax guidelines. Write complete, well-commented code, keeping component definitions separate.
-3. **Verify**: Use curl/manual test scripts for API testing. Inspect database updates using Prisma Studio or querying. Run `npm run dev` to verify hot module replacement and client rendering.
+5. **Verify**: Use curl/manual test scripts for API testing. Inspect database updates using Prisma Studio or querying. Run `npm run dev` to verify hot module replacement and client rendering.
 4. **Document Progress**: Tick the checkboxes in `home-builder-tasks.md` as soon as you have verified the completion of a specific task.
+
+---
+
+## 4. Current State & Latest Architecture Updates
+
+**Status**: The Home Page Builder refactor is largely complete through Phase 11. 
+Key architecture implementations now live include:
+- **Template Picker Overhaul**: Themes (Festivals) and Starters are managed and applied natively via the `TemplatePickerModal` rather than a basic dropdown. Applying a theme layout clones its sections and components entirely into the current draft.
+- **Advanced Card Styling & Chrome**: `ProductCard` includes a `"festive"` glow variant, robust custom styling controls (border radius, badges, padding), and native UX enhancements for `VARIABLE` products (e.g., rendering "Select Options" buttons).
+- **Responsive 1:1 WYSIWYG**: Mobile-first grid layouts are implemented. CSS padding constraints on the builder canvas have been removed to ensure the builder preview visually matches the live storefront 1:1.
+- **Save as Block**: Individual sections can be extracted, saved as blocks (`scope: "block"` in `BuilderTemplate`), and reused.
+
+When onboarding, ensure you review the most recent completed checkmarks in `home-builder-tasks.md` to understand what remains for out-of-band features or polish.

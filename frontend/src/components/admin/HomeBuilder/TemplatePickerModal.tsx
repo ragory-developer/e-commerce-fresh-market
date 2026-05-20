@@ -241,8 +241,8 @@ export default function TemplatePickerModal({
           <div className="flex items-center gap-2">
             <LayoutTemplate className="w-5 h-5 text-emerald-400" />
             <div>
-              <h2 className="text-lg font-black tracking-tight">Layout & Theme Picker</h2>
-              <p className="text-xs font-semibold text-gray-400">Instantly switch layout presets or apply festival designs</p>
+              <h2 className="text-lg font-black tracking-tight">Layout & Template Picker</h2>
+              <p className="text-xs font-semibold text-gray-400">Instantly switch layout presets or apply festive templates</p>
             </div>
           </div>
           <button
@@ -265,7 +265,7 @@ export default function TemplatePickerModal({
               <div className="flex border-b border-gray-200">
                 {[
                   { id: "starters" as const, label: "Starters", icon: LayoutTemplate },
-                  { id: "themes" as const, label: "Festive Themes", icon: Sparkles },
+                  { id: "themes" as const, label: "Festive Templates", icon: Sparkles },
                   { id: "my-blocks" as const, label: "My Blocks", icon: Layers },
                 ].map((tab) => {
                   const isActive = activeTab === tab.id;
@@ -301,7 +301,7 @@ export default function TemplatePickerModal({
                       ? "saved custom blocks"
                       : activeTab === "starters"
                         ? "starter templates"
-                        : "themed templates"
+                        : "festive templates"
                   }...`}
                   className="w-full pl-9 pr-4 py-2 text-sm font-semibold rounded-lg border border-gray-200 bg-gray-50 focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition"
                 />
@@ -361,7 +361,13 @@ export default function TemplatePickerModal({
                               {template.name}
                             </h3>
                             <p className="mt-1.5 text-xs text-gray-500 font-medium leading-relaxed">
-                              Clean foundation layout. Highly modular, standard blocks prepared for custom branding.
+                              {template.key === "minimal-home"
+                                ? "Minimal storefront layout focusing heavily on beautiful organic products, clean structures, and minimalist aesthetics."
+                                : template.key === "discount-home"
+                                  ? "High-converting mega discount layout featuring hot deals, promotion grids, and special bundles to boost conversions."
+                                  : template.key === "wellness-home"
+                                    ? "Health & wellness storefront layout focusing on consulting, expert routines, and custom organic showcase sections."
+                                    : "Clean foundation layout. Highly modular, standard blocks prepared for custom branding."}
                             </p>
                           </div>
 
@@ -380,7 +386,7 @@ export default function TemplatePickerModal({
                 filteredThemes.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-20 text-gray-400">
                     <Sparkles className="w-12 h-12 opacity-30 mb-2" />
-                    <span className="text-sm font-bold">No theme templates found</span>
+                    <span className="text-sm font-bold">No festive templates found</span>
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-4">
@@ -410,7 +416,7 @@ export default function TemplatePickerModal({
                           >
                             <div className="flex items-center justify-between mb-1">
                               <span className={`text-[9px] uppercase font-black tracking-wider px-2 py-0.5 rounded border ${visual.accent}`}>
-                                Theme Pack
+                                Festive Layout
                               </span>
                               <span className="text-xl leading-none">{visual.icon}</span>
                             </div>

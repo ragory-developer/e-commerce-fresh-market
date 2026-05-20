@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 async function getProductsData() {
   try {
-    const res = await fetch(`${API_URL}/api/products?limit=100&featured=true`, {
+    const res = await fetch(`${API_URL}/api/products?limit=100`, {
       cache: 'no-store'
     });
     if (!res.ok) return [];

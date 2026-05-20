@@ -3,7 +3,7 @@ import { API_URL } from "@/lib/config";
 
 import Link from "next/link";
 import { useCartStore } from "@/store/cartStore";
-import { ShoppingCart, Star } from "lucide-react";
+import { ShoppingCart, Star, Eye } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { getActivePrice } from "@/lib/utils";
@@ -97,7 +97,7 @@ export default function ProductCard({
 }: { 
   product: any;
   prefetch?: boolean;
-  variant?: "classic" | "sleek" | "minimal";
+  variant?: "classic" | "sleek" | "minimal" | "festive";
   radius?: "none" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "full";
   showBadge?: boolean;
   showRating?: boolean;
@@ -248,35 +248,57 @@ export default function ProductCard({
           ? "bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-2xl hover:-translate-y-2"
           : variant === "sleek"
           ? "bg-gradient-to-b from-white/95 to-gray-50/95 dark:from-gray-900/95 dark:to-gray-950/95 shadow-md hover:shadow-2xl hover:-translate-y-1 hover:scale-[1.01] border-0"
+          : variant === "festive"
+          ? "bg-gradient-to-b from-amber-50/30 to-white dark:from-amber-950/10 dark:to-gray-900 border border-amber-250/50 dark:border-amber-900/30 shadow-md hover:shadow-[0_12px_30px_rgba(245,158,11,0.18)] hover:-translate-y-1.5 hover:border-amber-300 dark:hover:border-amber-700 hover:scale-[1.01]"
           : "bg-transparent border-0 shadow-none hover:opacity-95"
       }`}>
         {/* Shimmer/glass hover effect */}
         {variant !== "minimal" && (
-          <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/0 via-emerald-500/0 to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+          <div className={`absolute inset-0 bg-gradient-to-tr opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none ${
+            variant === "festive"
+              ? "from-amber-500/0 via-amber-500/0 to-amber-500/10"
+              : "from-emerald-500/0 via-emerald-500/0 to-emerald-500/5"
+          }`} />
         )}
 
         {/* Image area */}
         <Link 
           href={productUrl} 
           prefetch={prefetch}
-          className={`relative block overflow-hidden ${variant === "classic" ? `bg-gray-50 dark:bg-gray-800 ${imageRadiusClass}` : "bg-transparent"}`}
+          className={`relative block overflow-hidden ${
+            variant === "classic" 
+              ? `bg-gray-50 dark:bg-gray-800 ${imageRadiusClass}` 
+              : variant === "festive"
+              ? `bg-amber-50/20 dark:bg-amber-950/5 ${imageRadiusClass}`
+              : "bg-transparent"
+          }`}
         >
           {/* Render Badges */}
           {renderBadges()}
 
-          {/* Add to Cart floating icon (Classic variant, simple products only) */}
-          {variant === "classic" && showAddToCart && product.productType !== "VARIABLE" && (
+          {/* Add to Cart floating icon (Classic/Festive variant) */}
+          {showAddToCart && (variant === "classic" || variant === "festive") && (
             <button
               type="button"
-              onClick={handleAddToCart}
-              title="Add to Cart"
+              onClick={(e) => {
+                if (product.productType === "VARIABLE") {
+                  // Let navigation bubble up and happen
+                } else {
+                  handleAddToCart(e);
+                }
+              }}
+              title={product.productType === "VARIABLE" ? "Select Options" : "Add to Cart"}
               className={`absolute top-2 right-2 z-10 w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-all duration-200 active:scale-90
                 ${added
                   ? "bg-emerald-500 text-white opacity-100"
+                  : product.productType === "VARIABLE"
+                  ? "bg-white dark:bg-gray-700 text-amber-600 dark:text-amber-400 opacity-0 group-hover:opacity-100 hover:bg-amber-500 hover:text-white"
+                  : variant === "festive"
+                  ? "bg-white dark:bg-gray-700 text-amber-500 dark:text-amber-400 opacity-0 group-hover:opacity-100 hover:bg-amber-500 hover:text-white"
                   : "bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-200 opacity-0 group-hover:opacity-100 hover:bg-emerald-500 hover:text-white"
                 }`}
             >
-              <ShoppingCart size={14} />
+              {product.productType === "VARIABLE" ? <Eye size={14} /> : <ShoppingCart size={14} />}
             </button>
           )}
 
@@ -296,14 +318,16 @@ export default function ProductCard({
         <div className={`flex flex-col flex-1 gap-1.5 ${variant === "minimal" ? "pt-3 px-1 pb-1" : "p-3"}`}>
           {/* Category */}
           {(product.categories?.[0]?.name || product.category?.name) && (
-            <span className="text-[11px] text-emerald-600 font-semibold uppercase tracking-wide truncate">
+            <span className={`text-[11px] font-semibold uppercase tracking-wide truncate ${
+              variant === "festive" ? "text-amber-600 dark:text-amber-400" : "text-emerald-600"
+            }`}>
               {product.categories?.[0]?.name ?? product.category?.name}
             </span>
           )}
 
           {/* Name */}
           <Link href={productUrl} prefetch={prefetch}>
-            <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 line-clamp-2 leading-snug hover:text-emerald-600 transition-colors min-h-[2.5rem]">
+            <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 line-clamp-2 leading-snug hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors min-h-[2.5rem]">
               {product.name}
             </h3>
           </Link>
@@ -316,7 +340,11 @@ export default function ProductCard({
 
           {/* Price */}
           <div className="flex items-center gap-2 flex-wrap mt-1">
-            <span className={`font-extrabold text-emerald-600 dark:text-emerald-400 ${isRange ? "text-sm" : "text-base"}`}>
+            <span className={`font-extrabold ${
+              variant === "festive" 
+                ? "text-amber-600 dark:text-amber-400" 
+                : "text-emerald-600 dark:text-emerald-400"
+            } ${isRange ? "text-sm" : "text-base"}`}>
               {displayPrice}
             </span>
             {originalPrice && (
@@ -327,32 +355,87 @@ export default function ProductCard({
           </div>
 
           {/* Sleek Variant Add to Cart Button */}
-          {variant === "sleek" && showAddToCart && product.productType !== "VARIABLE" && (
+          {variant === "sleek" && showAddToCart && (
             <button
               type="button"
-              onClick={handleAddToCart}
+              onClick={(e) => {
+                if (product.productType === "VARIABLE") {
+                  // Let navigation happen
+                } else {
+                  handleAddToCart(e);
+                }
+              }}
               className={`w-full py-2 px-3 rounded-xl flex items-center justify-center gap-2 text-xs font-bold transition-all mt-2 active:scale-95
                 ${added
                   ? "bg-emerald-500 text-white"
+                  : product.productType === "VARIABLE"
+                  ? "bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 hover:bg-amber-500 hover:text-white"
                   : "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white"
                 }`}
             >
-              <ShoppingCart size={13} /> {added ? "Added!" : "Add to Cart"}
+              {product.productType === "VARIABLE" ? (
+                <>
+                  <Eye size={13} /> Select Options
+                </>
+              ) : (
+                <>
+                  <ShoppingCart size={13} /> {added ? "Added!" : "Add to Cart"}
+                </>
+              )}
             </button>
           )}
 
           {/* Minimal Variant Add to Cart Button */}
-          {variant === "minimal" && showAddToCart && product.productType !== "VARIABLE" && (
+          {variant === "minimal" && showAddToCart && (
             <button
               type="button"
-              onClick={handleAddToCart}
+              onClick={(e) => {
+                if (product.productType === "VARIABLE") {
+                  // Let navigation happen
+                } else {
+                  handleAddToCart(e);
+                }
+              }}
               className={`w-full py-1.5 text-xs font-bold text-center border border-gray-100 dark:border-gray-800 rounded-lg hover:border-emerald-500 hover:text-emerald-500 transition-colors mt-2 active:scale-95
                 ${added
                   ? "text-emerald-500 border-emerald-500 bg-emerald-50/30 dark:bg-emerald-950/10"
+                  : product.productType === "VARIABLE"
+                  ? "text-amber-600 dark:text-amber-400 hover:border-amber-500 hover:text-amber-500"
                   : "text-gray-500 dark:text-gray-400"
                 }`}
             >
-              {added ? "✓ Added" : "+ Add to Cart"}
+              {product.productType === "VARIABLE" ? "Select Options" : added ? "✓ Added" : "+ Add to Cart"}
+            </button>
+          )}
+
+          {/* Festive Variant Add to Cart Button */}
+          {variant === "festive" && showAddToCart && (
+            <button
+              type="button"
+              onClick={(e) => {
+                if (product.productType === "VARIABLE") {
+                  // Let navigation happen
+                } else {
+                  handleAddToCart(e);
+                }
+              }}
+              className={`w-full py-2 px-3 rounded-xl flex items-center justify-center gap-2 text-xs font-bold transition-all mt-2 active:scale-95 shadow-sm
+                ${added
+                  ? "bg-emerald-500 text-white"
+                  : product.productType === "VARIABLE"
+                  ? "bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 hover:bg-amber-500 hover:text-white"
+                  : "bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/10"
+                }`}
+            >
+              {product.productType === "VARIABLE" ? (
+                <>
+                  <Eye size={13} /> Select Options
+                </>
+              ) : (
+                <>
+                  <ShoppingCart size={13} /> {added ? "Added!" : "Add to Cart"}
+                </>
+              )}
             </button>
           )}
         </div>

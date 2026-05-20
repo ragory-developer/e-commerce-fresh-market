@@ -84,25 +84,21 @@ export default function BuilderPageRenderer({
 
         if (combinedClass || Object.keys(inlineStyles).length > 0 || hasOverlay) {
           return (
-            <div key={section.id} className={combinedClass} style={inlineStyles}>
+            <div key={section.id} className="relative group/builder-section">
               {hasOverlay && (
                 <div 
-                  className="absolute inset-0 bg-black pointer-events-none" 
-                  style={{ opacity: styles.bgOverlay! / 100, zIndex: 0 }} 
+                  className="absolute inset-0 bg-black pointer-events-none z-[1]" 
+                  style={{ opacity: styles.bgOverlay! / 100 }} 
                 />
               )}
-              {hasOverlay ? (
-                <div className="relative z-10 w-full h-full">
-                  <Renderer {...props} />
-                </div>
-              ) : (
-                <Renderer {...props} />
-              )}
+              <div className="relative z-[2] w-full h-full">
+                <Renderer {...props} builderClassName={combinedClass} builderStyle={inlineStyles} />
+              </div>
             </div>
           );
         }
         
-        return <Renderer key={section.id} {...props} />;
+        return <Renderer key={section.id} {...props} builderClassName={combinedClass} builderStyle={inlineStyles} />;
       })}
     </div>
   );

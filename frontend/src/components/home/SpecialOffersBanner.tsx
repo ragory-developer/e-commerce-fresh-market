@@ -46,7 +46,7 @@ export default function SpecialOffersBanner({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className={`relative overflow-hidden rounded-3xl bg-gradient-to-r ${bgColor} p-8 lg:p-12`}
+          className={`relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r ${bgColor} p-5 sm:p-8 lg:p-12`}
         >
           <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
             {/* Left Image */}
@@ -69,13 +69,13 @@ export default function SpecialOffersBanner({
                 <Star size={20} className="text-yellow-300 fill-yellow-300" />
               </div>
               
-              <h2 data-field="title" className="text-3xl lg:text-5xl font-black text-white mb-3 leading-tight block w-full cursor-text" dangerouslySetInnerHTML={{ __html: title }} />
+              <h2 data-field="title" className="text-xl sm:text-3xl lg:text-5xl font-black text-white mb-2 sm:mb-3 leading-tight block w-full cursor-text" dangerouslySetInnerHTML={{ __html: title }} />
               
-              <p data-field="subtitle" className="text-blue-100 text-lg mb-6 max-w-lg font-medium block w-full cursor-text">
+              <p data-field="subtitle" className="text-blue-100 text-sm sm:text-base lg:text-lg mb-4 sm:mb-6 max-w-lg font-medium block w-full cursor-text">
                  {subtitle}
               </p>
               
-              <Link data-field="ctaText" href={ctaHref} className="inline-flex items-center gap-2 bg-white text-blue-700 hover:bg-blue-50 px-8 py-3.5 rounded-full font-bold text-base transition-all hover:scale-105 shadow-lg w-fit">
+              <Link data-field="ctaText" href={ctaHref} className="inline-flex items-center gap-2 bg-white text-blue-700 hover:bg-blue-50 px-5 sm:px-8 py-2.5 sm:py-3.5 rounded-full font-bold text-sm sm:text-base transition-all hover:scale-105 shadow-lg w-fit">
                 <span>{ctaText}</span>
                 <ArrowRight size={18} />
               </Link>

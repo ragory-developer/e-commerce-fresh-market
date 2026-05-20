@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 async function getHomePageData() {
   try {
     const res = await fetch(`${API_URL}/api/products?limit=100`, {
-      next: { revalidate: 60 } // Revalidate every 60 seconds
+      cache: 'no-store'
     });
     if (!res.ok) return [];
     const json = await res.json();
